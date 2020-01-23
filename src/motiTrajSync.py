@@ -13,6 +13,8 @@ class MotionTrajectorySynchronization:
         self.Q2 = 0.1 * np.eye(self.P)
         self.Q3 = 10 * np.eye(self.P)
 
+        self.domain = [0.5, 1]
+
     def getRobotConstraints(self):
         pass
         
