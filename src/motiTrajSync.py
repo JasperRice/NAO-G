@@ -1,9 +1,11 @@
+import csv
 import numpy as np
 
 
 class MotionTrajectorySynchronization:
 
-    def __init__(self, nopt_seq):
+    def __init__(self, nopt_seq, robot_name="NAO"):
+        self.robot_name = robot_name
         self.nopt_seq = nopt_seq.copy()
         self.opt_seq = np.zeros_like(self.nopt_seq)
         
@@ -16,8 +18,10 @@ class MotionTrajectorySynchronization:
         self.domain = [0.5, 1]
 
     def getRobotConstraints(self):
-        pass
-        
+        with open(self.robot_name+".config") as robot_cofig:
+            robot_cofig = csv.reader(robot_cofig, delimiter=" ", quoting=csv.QUOTE_NONNUMERIC)
+
+
     def getRobotDynamics(self):
         pass
 
