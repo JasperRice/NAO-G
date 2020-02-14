@@ -12,7 +12,7 @@ def main(IP, PORT, FPS):
     motion.post.setAngles(['LShoulderRoll', 'LShoulderPitch', 'LElbowRoll', 'LElbowYaw'],
                           [0.0, 0.0, 0.0, 0.0],
                           1.0)
-    time.sleep(1.0/5.0)
+    time.sleep(1.0 / FPS)
 
     motion.post.setAngles(['LShoulderRoll', 'LShoulderPitch', 'LElbowRoll', 'LElbowYaw'],
                           [0.0, 0.5, 0.0, 0.0],
