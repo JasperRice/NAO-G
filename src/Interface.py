@@ -1,6 +1,7 @@
 from naoqi import ALProxy
 
 import argparse
+import bvh
 import time
 
 
@@ -57,5 +58,6 @@ if __name__ == "__main__":
     parser.add_argument("--ip", type=str, default="127.0.0.1", help="Address IP of the NAO robot.")
     parser.add_argument("--port", type=int, default=9559, help="Port number of the NAO robot.")
     parser.add_argument("--fps", type=int, default=30, help="FPS of motion of the NAO robot.")
+    parser.add_argument("--filename", type=str, default="", help="FPS of motion of the NAO robot.")
     args = parser.parse_args()
     main(args.ip, args.port, args.fps)
