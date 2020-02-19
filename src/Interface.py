@@ -21,12 +21,12 @@ def main(IP, PORT, FPS, FILE):
     :type FILE: [type]
     """
     with open(FILE) as file:
+        print "Reading human motion file ... "
         human_mocap = Bvh(file.read())
-        # nframes = human_mocap.nframes
-        # frame_time = human_mocap.frame_time
-    
-    nframes = 3
-    frame_time = 1.0 / FPS
+        human_joint_names = human_mocap.get_joints_names()
+        nframes = human_mocap.nframes
+        frame_time = human_mocap.frame_time
+        print "... finished."
     
     motion = ALProxy("ALMotion", IP, PORT)
     memory = ALProxy("ALMemory", IP, PORT)
@@ -34,29 +34,29 @@ def main(IP, PORT, FPS, FILE):
     motion.setAngles('LShoulderPitch', 0.0, 1.0)
     time.sleep(1.0)
 
-    for index in range(nframes):
+    # for index in range(nframes):
 
-        motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.3, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.4, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.5, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.6, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.7, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.8, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.9, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 1.0, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.9, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.8, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.7, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.6, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.5, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.4, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.3, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
-        motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.3, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.4, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.5, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.6, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.7, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.8, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.9, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 1.0, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.9, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.8, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.7, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.6, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.5, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.4, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.3, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
+    #     motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
 
 
 if __name__ == "__main__":
