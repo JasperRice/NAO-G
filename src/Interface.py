@@ -31,6 +31,9 @@ def main(IP, PORT, FPS, FILE):
     motion = ALProxy("ALMotion", IP, PORT)
     memory = ALProxy("ALMemory", IP, PORT)
 
+    f = open("naoJoints.txt", "a")
+    f.write()
+
     motion.setAngles('LShoulderPitch', 0.0, 1.0)
     time.sleep(1.0)
 
