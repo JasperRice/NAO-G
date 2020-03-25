@@ -27,15 +27,35 @@ def main(IP, PORT, FPS, FILE):
         nframes = human_mocap.nframes
         frame_time = human_mocap.frame_time
         print "... finished."
-    
-    motion = ALProxy("ALMotion", IP, PORT)
-    memory = ALProxy("ALMemory", IP, PORT)
 
-    motion.setAngles('LShoulderPitch', 0.0, 1.0)
-    time.sleep(1.0)
+    print human_mocap.joint_channels(human_joint_names[8])
+    print human_mocap.frame_joint_channel(0, human_joint_names[8], "Zrotation")
+    print human_joint_names
+
+    
+    # Retarget human motion to robot motion. Frame by frame.
+
+    # Post-processing of robot motion.
+
+    # Execute robot motion.
+    
+    # motion = ALProxy("ALMotion", IP, PORT)
+    # memory = ALProxy("ALMemory", IP, PORT)
+
+    # robot_joint_names = motion.getBodyNames("Joints")
+    # print robot_joint_names
+    """[
+        'HeadYaw', 'HeadPitch',
+        'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+        'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll',
+        'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+        'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw'
+    ]"""
+
+    # motion.setAngles('LShoulderPitch', 0.0, 1.0)
+    # time.sleep(1.0)
 
     # for index in range(nframes):
-
     #     motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
     #     motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
     #     motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
