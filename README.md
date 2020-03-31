@@ -3,7 +3,7 @@
 
 
 
-![](https://www.softbankrobotics.com/emea/themes/custom/softbank/images/full-nao.png)
+<img src="https://www.softbankrobotics.com/emea/themes/custom/softbank/images/full-nao.png" style="zoom:20%;" />
 
 
 
