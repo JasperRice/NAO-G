@@ -27,28 +27,25 @@ def main(IP, PORT, FPS, FILE):
     #     nframes = human_mocap.nframes
     #     frame_time = human_mocap.frame_time
     #     print "... finished."
+
+    # print human_mocap.joint_channels(human_joint_names[8])
+    # print human_mocap.frame_joint_channel(0, human_joint_names[8], "Zrotation")
+    # print human_joint_names
+
     
-    motion = ALProxy("ALMotion", IP, PORT)
-    memory = ALProxy("ALMemory", IP, PORT)
+    # Retarget human motion to robot motion. Frame by frame.
 
-    f = open("naoJoints.txt", "a")
+    # Post-processing of robot motion.
 
-    robot_joint_names = motion.getBodyNames("Joints")
-    print robot_joint_names
-    # print robot_joint_names
-    """[
-        'HeadYaw', 'HeadPitch',
-        'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
-        'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll',
-        'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
-        'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw'
-    ]"""
+    # Execute robot motion.
+    
+    # motion = ALProxy("ALMotion", IP, PORT)
+    # memory = ALProxy("ALMemory", IP, PORT)
 
     # motion.setAngles('LShoulderPitch', 0.0, 1.0)
     # time.sleep(1.0)
 
     # for index in range(nframes):
-
     #     motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
     #     motion.angleInterpolation('LShoulderPitch', 0.1, frame_time, True)
     #     motion.angleInterpolation('LShoulderPitch', 0.2, frame_time, True)
@@ -72,6 +69,22 @@ def main(IP, PORT, FPS, FILE):
     #     motion.angleInterpolation('LShoulderPitch', 0.0, frame_time, True)
 
 
+def saveJointAngles(IP, PORT, FILENAME, HUMANMOTION, LHAND, RHAND):
+    motion = ALProxy("ALMotion", IP, PORT)
+
+    # robot_joint_names = motion.getBodyNames("Joints")
+    """[
+        'HeadYaw', 'HeadPitch',
+        'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+        'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll',
+        'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+        'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw'
+    ]"""
+
+    f = open(FILENAME, "a")
+    f.write(HUMANMOTION + "\t: " + str(LHAND) + ", " + str(RHAND) + ", " + str(motion.getAngles("Joints", True)) + "\n")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1", help="Address IP of the NAO robot.")
@@ -79,4 +92,6 @@ if __name__ == "__main__":
     parser.add_argument("--fps", type=int, default=20, help="FPS of motion of the NAO robot.")
     parser.add_argument("--filename", type=str, default="Gesture/Default.bvh", help="Filename of the human gesture.")
     args = parser.parse_args()
-    main(args.ip, args.port, args.fps, args.filename)
+
+    saveJointAngles(args.ip, args.port, "./data.txt", "T1F10", True, True)
+    # main(args.ip, args.port, args.fps, args.filename)
