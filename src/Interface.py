@@ -1,4 +1,4 @@
-from bvh import Bvh
+# from bvh import Bvh
 from naoqi import ALProxy
 
 import argparse
@@ -20,22 +20,32 @@ def main(IP, PORT, FPS, FILE):
     :param FILE: [description]
     :type FILE: [type]
     """
-    with open(FILE) as file:
-        print "Reading human motion file ... "
-        human_mocap = Bvh(file.read())
-        human_joint_names = human_mocap.get_joints_names()
-        nframes = human_mocap.nframes
-        frame_time = human_mocap.frame_time
-        print "... finished."
+    # with open(FILE) as file:
+    #     print "Reading human motion file ... "
+    #     human_mocap = Bvh(file.read())
+    #     human_joint_names = human_mocap.get_joints_names()
+    #     nframes = human_mocap.nframes
+    #     frame_time = human_mocap.frame_time
+    #     print "... finished."
     
     motion = ALProxy("ALMotion", IP, PORT)
     memory = ALProxy("ALMemory", IP, PORT)
 
     f = open("naoJoints.txt", "a")
-    f.write()
 
-    motion.setAngles('LShoulderPitch', 0.0, 1.0)
-    time.sleep(1.0)
+    robot_joint_names = motion.getBodyNames("Joints")
+    print robot_joint_names
+    # print robot_joint_names
+    """[
+        'HeadYaw', 'HeadPitch',
+        'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 'LWristYaw',
+        'LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'LAnklePitch', 'LAnkleRoll',
+        'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch', 'RAnklePitch', 'RAnkleRoll',
+        'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 'RWristYaw'
+    ]"""
+
+    # motion.setAngles('LShoulderPitch', 0.0, 1.0)
+    # time.sleep(1.0)
 
     # for index in range(nframes):
 
