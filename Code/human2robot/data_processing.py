@@ -10,7 +10,7 @@ def normalize(data):
     :param data: [description]
     :type data: numpy.ndarray
     :return: [description]
-    :rtype: [type]
+    :rtype: numpy.ndarray, sklearn.preprocessing.data.StandardScaler
     """
     scaler = StandardScaler()
     scaler.fit(data)
@@ -22,11 +22,15 @@ def decompose(data):
     
     :param data: [description]
     :type data: numpy.ndarray
+    :return: [description]
+    :rtype: [type]
     """
     n, d = np.shape(data)
-    d_ = int(0.95*d)
-    pca = PCA(n_components=d_)
+    pca = PCA(n_components=int(0.95*min(n, d)))
     pca.fit(data)
+    data_decomposed = pca.transform(data)
+    return data_decomposed, pca
+
 
 
 if __name__ == "__main__":
@@ -50,3 +54,6 @@ if __name__ == "__main__":
         print human_data[0]
         # print human_data_normalized[0]
         print human_data_denormalized
+
+        new_human_data_normalized, human_pca = decompose(human_data_normalized)
+        print new_human_data_normalized[0]
