@@ -32,7 +32,6 @@ def decompose(data):
     return data_decomposed, pca
 
 
-
 if __name__ == "__main__":
     TEST = False
     if TEST:
