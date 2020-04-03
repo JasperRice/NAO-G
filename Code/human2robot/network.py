@@ -26,3 +26,8 @@ class Net(nn.Module):
         x = F.relu(self.input2hidden(x))
         x = self.hidden2output(x)
         return x
+
+
+if __name__ == "__main__":
+    net = Net(n_input=30, n_hidden=40, n_output=25)
+    print(net)
