@@ -26,13 +26,14 @@ def decompose(data):
     :rtype: [type]
     """
     n, d = np.shape(data)
-    pca = PCA(n_components=int(0.95*min(n, d)))
+    pca = PCA(0.95)
     pca.fit(data)
     data_decomposed = pca.transform(data)
     return data_decomposed, pca
 
 
 if __name__ == "__main__":
+    
     TEST = False
     if TEST:
         from sklearn.datasets import load_breast_cancer
