@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 def normalize(data):
-    """[summary]
+    """Normalize the data and save the scaler so that the inverse tranform can be done
     
     :param data: [description]
     :type data: numpy.ndarray
@@ -18,7 +18,7 @@ def normalize(data):
 
 
 def decompose(data):
-    """[summary]
+    """Use PCA to decompose the dimensionality of data
     
     :param data: [description]
     :type data: numpy.ndarray
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         # print breast_cancer_data_normalized[0]
         print breast_cancer_data_denormalized[0]
     else:
-        from io_routines import readCSV, writeCSV
+        from io_routines import readCSV
         human_data = readCSV("HUMAN.csv")
         human_data_normalized, human_scaler = normalize(human_data)
         human_data_denormalized = human_scaler.inverse_transform(human_data_normalized)

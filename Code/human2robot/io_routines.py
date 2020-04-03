@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 def readCSV(filename):
     """Read the CSV file according to the file name and transfer the data frame to a numpy array
     Note that "HUMAN.csv" is defined in degree, while "NAO.csv" is defined in rad
@@ -14,8 +15,14 @@ def readCSV(filename):
     array = df.to_numpy()
     return array
 
-def writeCSV(filename):
+
+def saveNetwork(filename):
     pass
+
+
+def execute():
+    pass
+
 
 if __name__ == "__main__":
     array = readCSV("HUMAN.csv")
