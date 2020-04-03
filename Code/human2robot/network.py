@@ -1,7 +1,28 @@
-from data_processing import normalize, decompose
-from io_routines import readCSV, saveNetwork
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 
-nao = readCSV("NAO.csv")
-human = readCSV("HUMAN.csv")
+class Net(nn.Module):
+    
+    def __init__(self, n_input, n_hidden, n_output):
+        """[summary]
+        
+        :param n_input: [description]
+        :type n_input: [type]
+        :param n_hidden: The dimensions for each hidden layer.
+        :type n_hidden: int
+        :param n_output: [description]
+        :type n_output: [type]
+        """
+        super(Net, self).__init__()
 
+        # Define each layer here:
+        self.input2hidden = nn.Linear(n_input, n_hidden)
+        self.hidden2output = nn.Linear(n_hidden, n_output)
+
+
+    def forward(self, x):
+        x = F.relu(self.input2hidden(x))
+        x = self.hidden2output(x)
+        return x
