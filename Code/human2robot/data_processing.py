@@ -1,6 +1,7 @@
 import numpy as np
 
 from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 
@@ -32,8 +33,28 @@ def decompose(data):
     return data_decomposed, pca
 
 
-if __name__ == "__main__":
+def split(X, Y):
+    """Seperate the dataset into train, test, and validation
+    X and Y should have same amount of data
     
+    :param X: [description]
+    :type X: numpy.ndarray
+    :param Y: [description]
+    :type Y: numpy.ndarray
+    :return: [description]
+    :rtype: [type]
+    """
+    X_train, X_test, Y_train, Y_test = train_test_split(
+        X, Y, test_size=0.2, random_state=1000
+    )
+    X_test, X_val, Y_test, Y_val = train_test_split(
+        X_test, Y_test, test_size=0.5, random_state=2000
+    )
+    return X_train, X_test, X_val, Y_train, Y_test, Y_train
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     TEST = False
     if TEST:
         from sklearn.datasets import load_breast_cancer
@@ -42,18 +63,13 @@ if __name__ == "__main__":
         breast_cancer_data_normalized, breast_cancer_scaler = normalize(breast_cancer_data)
         breast_cancer_data_denormalized = breast_cancer_scaler.inverse_transform(breast_cancer_data_normalized)
 
-        print breast_cancer_data[0]
-        # print breast_cancer_data_normalized[0]
-        print breast_cancer_data_denormalized[0]
     else:
         from io_routines import readCSV
-        human_data = readCSV("HUMAN.csv")
+        human_data = readCSV("dataset/HUMAN.csv")
         human_data_normalized, human_scaler = normalize(human_data)
-        human_data_denormalized = human_scaler.inverse_transform(human_data_normalized)
+        human_data_normalized_decomposed, human_pca = decompose(human_data_normalized)
 
-        print human_data[0]
-        # print human_data_normalized[0]
-        print human_data_denormalized
+        human_data_normalized_inverse = human_pca.inverse_transform(human_data_normalized_decomposed)
+        human_data_inverse_inverse = human_scaler.inverse_transform(human_data_normalized_inverse)
 
-        new_human_data_normalized, human_pca = decompose(human_data_normalized)
-        print new_human_data_normalized[0]
+        
