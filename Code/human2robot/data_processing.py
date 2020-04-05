@@ -55,6 +55,8 @@ def split(X, Y):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from sklearn.metrics import mean_squared_error
+
     TEST = False
     if TEST:
         from sklearn.datasets import load_breast_cancer
@@ -65,11 +67,20 @@ if __name__ == "__main__":
 
     else:
         from io_routines import readCSV
-        human_data = readCSV("dataset/HUMAN.csv")
-        human_data_normalized, human_scaler = normalize(human_data)
-        human_data_normalized_decomposed, human_pca = decompose(human_data_normalized)
+        talk_01 = readCSV("dataset/TALK_01.csv")
+        talk_02 = readCSV("dataset/TALK_02.csv")
+        talk = np.vstack((talk_01, talk_02))
 
-        human_data_normalized_inverse = human_pca.inverse_transform(human_data_normalized_decomposed)
-        human_data_inverse_inverse = human_scaler.inverse_transform(human_data_normalized_inverse)
+        talk_normalized, talk_scaler = normalize(talk)
+        talk_normalized_decomposed, talk_pca = decompose(talk_normalized)
 
+        print talk_pca.n_components_
+        print sum(talk_pca.explained_variance_ratio_)
+
+        talk_normalized_composed = talk_pca.inverse_transform(talk_normalized_decomposed)
+
+        print mean_squared_error(talk_normalized, talk_normalized_composed)
+
+        talk_denormalized_composed = talk_scaler.inverse_transform(talk_normalized_composed)
         
+        print mean_squared_error(talk, talk_denormalized_composed)
