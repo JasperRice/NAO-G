@@ -26,5 +26,5 @@ def execute():
 
 if __name__ == "__main__":
     array = readCSV("HUMAN.csv")
-    print array
-    print type(array)
+    print(array)
+    print(type(array))

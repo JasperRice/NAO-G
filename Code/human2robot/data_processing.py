@@ -74,13 +74,13 @@ if __name__ == "__main__":
         talk_normalized, talk_scaler = normalize(talk)
         talk_normalized_decomposed, talk_pca = decompose(talk_normalized)
 
-        print talk_pca.n_components_
-        print sum(talk_pca.explained_variance_ratio_)
+        print(talk_pca.n_components_)
+        print(sum(talk_pca.explained_variance_ratio_))
 
         talk_normalized_composed = talk_pca.inverse_transform(talk_normalized_decomposed)
 
-        print mean_squared_error(talk_normalized, talk_normalized_composed)
+        print(mean_squared_error(talk_normalized, talk_normalized_composed))
 
         talk_denormalized_composed = talk_scaler.inverse_transform(talk_normalized_composed)
         
-        print mean_squared_error(talk, talk_denormalized_composed)
+        print(mean_squared_error(talk, talk_denormalized_composed))
