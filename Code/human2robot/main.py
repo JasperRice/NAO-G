@@ -3,6 +3,11 @@ from io_routines import execute, readCSV, saveNetwork
 from network import Net
 
 import numpy as np
+import torch
+import torch.nn as nn
+
+def train(n_hidden):
+    pass
 
 
 if __name__ == "__main__":
@@ -13,5 +18,9 @@ if __name__ == "__main__":
     human = readCSV("dataset/HUMAN.csv")
     nao = readCSV("dataset/NAO.csv")
 
+    n, d_human = np.shape(human)
+    _, d_nao = np.shape(nao)
 
-
+    net = Net(n_input=d_human, n_hidden=250, n_output=d_nao)
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+    loss_func = nn.MSELoss()
