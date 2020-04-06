@@ -30,4 +30,6 @@ class Net(nn.Module):
 
 if __name__ == "__main__":
     net = Net(n_input=30, n_hidden=40, n_output=25)
-    print(net)
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+    loss_func = nn.MSELoss()
+    
