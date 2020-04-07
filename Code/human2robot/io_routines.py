@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import torch
 
 
 def readCSV(filename):
@@ -17,7 +18,11 @@ def readCSV(filename):
 
 
 def saveNetwork(filename):
-    pass
+    torch.save(filename)
+
+
+def loadNetwork(filename):
+    return torch.load(filename)
 
 
 def execute():
