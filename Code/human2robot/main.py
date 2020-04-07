@@ -41,11 +41,11 @@ if __name__ == "__main__":
     
     # Transfer the numpy to tensor in pytorch
     human_train_torch = torch.from_numpy(human_train).float()
+    human_val_torch = torch.from_numpy(human_val).float()
     # human_test_torch = torch.double(torch.from_numpy(human_test))
-    # human_val_torch = torch.double(torch.from_numpy(human_val))
     nao_train_torch = torch.from_numpy(nao_train).float()
+    nao_val_torch = torch.from_numpy(nao_val).float()
     # nao_test_torch = torch.double(torch.from_numpy(nao_test))
-    # nao_val_torch = torch.double(torch.from_numpy(nao_train))
 
 
     if False:
@@ -68,12 +68,22 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
-    for epoch in range(10000):
+    # Main loop for training
+    plt.figure()
+    for epoch in range(100):
         print("=====> Epoch: "+str(epoch+1))
 
+        # Train
         prediction = net(human_train_torch)
         loss = loss_func(prediction, nao_train_torch)
+        val_err = loss_func(net(human_val_torch), nao_val_torch)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        # Plot the error
+        plt.scatter(epoch, loss.data.numpy(), s=1, c='r')
+        plt.scatter(epoch, val_err.data.numpy(), s=1, c='g')
+
+    plt.show()
