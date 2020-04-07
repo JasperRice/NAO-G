@@ -38,8 +38,14 @@ if __name__ == "__main__":
 
     # Split the dataset into train, test, and validation
     human_train, human_test, human_val, nao_train, nao_test, nao_val = split(human_n_d, nao_n_d)
-    human_train_torch = torch.from_numpy(human_train)
-    nao_train_torch = torch.from_numpy(nao_train)
+    
+    # Transfer the numpy to tensor in pytorch
+    human_train_torch = torch.from_numpy(human_train).float()
+    # human_test_torch = torch.double(torch.from_numpy(human_test))
+    # human_val_torch = torch.double(torch.from_numpy(human_val))
+    nao_train_torch = torch.from_numpy(nao_train).float()
+    # nao_test_torch = torch.double(torch.from_numpy(nao_test))
+    # nao_val_torch = torch.double(torch.from_numpy(nao_train))
 
 
     if False:
@@ -62,8 +68,8 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
-    for epoch in range(200):
-        print("=====> Epoch: "+str(epoch))
+    for epoch in range(10000):
+        print("=====> Epoch: "+str(epoch+1))
 
         prediction = net(human_train_torch)
         loss = loss_func(prediction, nao_train_torch)
