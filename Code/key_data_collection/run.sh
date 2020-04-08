@@ -1,1 +1,0 @@
-python Interface.py --ip "130.237.67.140" --port 9559 --fps 30 --filename "Gesture/Default.bvh"
