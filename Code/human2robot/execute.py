@@ -4,31 +4,26 @@ import time
 
 start = time.time()
 
-def execute(IP, PORT, FPS, FILE):
-    """Execute motion on virtual or physical NAO robot
+def execGesture(IP, PORT, GESTURE):
+    """Execute a static gesture on virtual or physical NAO robot
     
     :param IP: Adress IP of the NAO robot
     :type IP: str
     :param PORT: Port number of the NAO robot
     :type PORT: int
-    :param FPS: [description]
-    :type FPS: [type]
-    :param FILE: [description]
-    :type FILE: [type]
+    :param GESTURE: A list of joint angles of NAO
+    :type GESTURE: list
     """
     motion = ALProxy("ALMotion", IP, PORT)
-
-    G = [0.09660005569458008, -0.10895586013793945, 1.6674160957336426, 0.2730100154876709, -1.1766200065612793, -0.28835010528564453, -0.08594608306884766, -0.16869807243347168, 0.31297802925109863, 0.11662602424621582, -0.09208202362060547, 0.1288139820098877, -0.2269899845123291, -0.16869807243347168, 0.08287787437438965, 0.14722204208374023, -0.08739614486694336, 0.09668397903442383, -0.0014920234680175781, 1.5785279273986816, -0.15804386138916016, 1.2271580696105957, 0.27002596855163574, 0.13955211639404297]
-    T = [0.5] * len(G)
-    motion.angleInterpolation("Joints", G, T, True)
+    T = [0.5] * len(gesture)
+    motion.angleInterpolation("Joints", GESTURE, T, True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1", help="Address IP of the NAO robot.")
     parser.add_argument("--port", type=int, default=34975, help="Port number of the NAO robot.")
-    parser.add_argument("--fps", type=int, default=30, help="FPS of motion of the NAO robot.")
-    parser.add_argument("--filename", type=str, default="Gesture/Default.bvh", help="Filename of the human gesture.")
     args = parser.parse_args()
 
-    execute(args.ip, args.port, args.fps, args.filename)
+    gesture = [0.09660005569458008, -0.10895586013793945, 1.6674160957336426, 0.2730100154876709, -1.1766200065612793, -0.28835010528564453, -0.08594608306884766, -0.16869807243347168, 0.31297802925109863, 0.11662602424621582, -0.09208202362060547, 0.1288139820098877, -0.2269899845123291, -0.16869807243347168, 0.08287787437438965, 0.14722204208374023, -0.08739614486694336, 0.09668397903442383, -0.0014920234680175781, 1.5785279273986816, -0.15804386138916016, 1.2271580696105957, 0.27002596855163574, 0.13955211639404297]
+    execGesture(args.ip, args.port, gesture)
