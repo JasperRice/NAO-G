@@ -3,7 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from data_processing import decompose, normalize, split
-from io_routines import execute, readCSV, saveNetwork
+from execute import execGesture
+from io_routines import readCSV, saveNetwork
 from network import Net
 
 import matplotlib.pyplot as plt
@@ -13,14 +14,17 @@ import torch.nn as nn
 
 
 if __name__ == "__main__":
+    # Reproducibility
+    torch.manual_seed(0)
+
     # Whole data "talk"
-    talk_01 = readCSV("dataset/TALK_01.csv")
-    talk_02 = readCSV("dataset/TALK_02.csv")
+    talk_01 = readCSV("human2robot/dataset/TALK_01.csv")
+    talk_02 = readCSV("human2robot/dataset/TALK_02.csv")
     talk = np.vstack((talk_01, talk_02))
 
     # Normalize and decompose the dataset
-    human = readCSV("dataset/HUMAN_Test.csv")
-    nao = readCSV("dataset/NAO.csv")
+    human = readCSV("human2robot/dataset/HUMAN.csv")
+    nao = readCSV("human2robot/dataset/NAO.csv")
     n_human, _ = np.shape(human)
     n_nao, _ = np.shape(nao)
     if n_human is not n_nao:
@@ -42,26 +46,10 @@ if __name__ == "__main__":
     # Transfer the numpy to tensor in pytorch
     human_train_torch = torch.from_numpy(human_train).float()
     human_val_torch = torch.from_numpy(human_val).float()
-    # human_test_torch = torch.double(torch.from_numpy(human_test))
+    human_test_torch = torch.from_numpy(human_test).float()
     nao_train_torch = torch.from_numpy(nao_train).float()
     nao_val_torch = torch.from_numpy(nao_val).float()
-    # nao_test_torch = torch.double(torch.from_numpy(nao_test))
-
-
-    if False:
-        print(talk_pca.n_components_)
-        print(nao_pca.n_components_)
-        print(np.shape(human))
-        print(np.shape(human_n_d))
-        print(np.shape(human_train))
-        print(np.shape(human_test))
-        print(np.shape(human_val))
-        print(np.shape(nao))
-        print(np.shape(nao_n_d))
-        print(np.shape(nao_train))
-        print(np.shape(nao_test))
-        print(np.shape(nao_val))
-        exit()
+    nao_test_torch = torch.from_numpy(nao_test).float()
 
     # Define Neural Network and train
     net = Net(n_input=talk_pca.n_components_, n_hidden=250, n_output=nao_pca.n_components_)
@@ -69,14 +57,18 @@ if __name__ == "__main__":
     loss_func = nn.MSELoss()
 
     # Main loop for training
-    plt.figure()
-    for epoch in range(100):
+    old_val_err = 1000
+    for epoch in range(300):
         print("=====> Epoch: "+str(epoch+1))
 
         # Train
         prediction = net(human_train_torch)
         loss = loss_func(prediction, nao_train_torch)
         val_err = loss_func(net(human_val_torch), nao_val_torch)
+        
+        if val_err > old_val_err:
+            break
+        old_val_err = val_err
 
         optimizer.zero_grad()
         loss.backward()
@@ -87,3 +79,18 @@ if __name__ == "__main__":
         plt.scatter(epoch, val_err.data.numpy(), s=1, c='g')
 
     plt.show()
+
+    # Visualize train result on NAO
+    nao_out = prediction.detach().numpy()
+    nao_out = nao_pca.inverse_transform(nao_out)
+    nao_out = nao_scaler.inverse_transform(nao_out)
+    nao_out = nao_out.tolist()
+    # execGesture("127.0.0.1", 45817, nao_out[50][2:])
+
+    # Visualize validation result on NAO
+    prediction = net(human_val_torch)
+    nao_out = prediction.detach().numpy()
+    nao_out = nao_pca.inverse_transform(nao_out)
+    nao_out = nao_scaler.inverse_transform(nao_out)
+    nao_out = nao_out.tolist()
+    execGesture("127.0.0.1", 45817, nao_out[5][2:])

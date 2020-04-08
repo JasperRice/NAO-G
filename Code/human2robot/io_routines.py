@@ -18,14 +18,12 @@ def readCSV(filename):
 
 
 def saveNetwork(filename):
-    torch.save(filename)
+    # torch.save(filename)
+    pass
 
 
 def loadNetwork(filename):
-    return torch.load(filename)
-
-
-def execute():
+    # return torch.load(filename)
     pass
 
 
