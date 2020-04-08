@@ -15,7 +15,7 @@ def execGesture(IP, PORT, GESTURE):
     :type GESTURE: list
     """
     motion = ALProxy("ALMotion", IP, PORT)
-    T = [0.5] * len(gesture)
+    T = [0.5] * len(GESTURE)
     motion.angleInterpolation("Joints", GESTURE, T, True)
 
 
