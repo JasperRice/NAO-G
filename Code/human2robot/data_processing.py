@@ -26,7 +26,6 @@ def decompose(data):
     :return: [description]
     :rtype: [type]
     """
-    n, d = np.shape(data)
     pca = PCA(0.95)
     pca.fit(data)
     data_decomposed = pca.transform(data)
