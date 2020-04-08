@@ -55,32 +55,37 @@ def split(X, Y):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    import numpy as np
+    import torch
     from sklearn.metrics import mean_squared_error
+    
+    from execute import execGesture
+    from io_routines import readCSV
 
-    TEST = False
-    if TEST:
-        from sklearn.datasets import load_breast_cancer
-        breast_cancer = load_breast_cancer()
-        breast_cancer_data = breast_cancer.data
-        breast_cancer_data_normalized, breast_cancer_scaler = normalize(breast_cancer_data)
-        breast_cancer_data_denormalized = breast_cancer_scaler.inverse_transform(breast_cancer_data_normalized)
-
-    else:
-        from io_routines import readCSV
-        talk_01 = readCSV("dataset/TALK_01.csv")
-        talk_02 = readCSV("dataset/TALK_02.csv")
+    TEST = "NAO"
+    if TEST is "TALK":
+        talk_01 = readCSV("human2robot/dataset/TALK_01.csv")
+        talk_02 = readCSV("human2robot/dataset/TALK_02.csv")
         talk = np.vstack((talk_01, talk_02))
 
         talk_normalized, talk_scaler = normalize(talk)
         talk_normalized_decomposed, talk_pca = decompose(talk_normalized)
 
-        print(talk_pca.n_components_)
-        print(sum(talk_pca.explained_variance_ratio_))
-
         talk_normalized_composed = talk_pca.inverse_transform(talk_normalized_decomposed)
-
-        print(mean_squared_error(talk_normalized, talk_normalized_composed))
-
         talk_denormalized_composed = talk_scaler.inverse_transform(talk_normalized_composed)
+
+        print("Components after decomposition: "+str(talk_pca.n_components_))
+        print("MSE between normalized data: "+str(mean_squared_error(talk_normalized, talk_normalized_composed)))
+        print("MSE between original data: "+str(mean_squared_error(talk, talk_denormalized_composed)))
+    elif TEST is "NAO":
+        nao = readCSV("human2robot/dataset/NAO.csv")
         
-        print(mean_squared_error(talk, talk_denormalized_composed))
+        nao_normalized, nao_scaler = normalize(nao)
+        nao_normalized_decomposed, nao_pca = decompose(nao_normalized)
+
+        nao_normalized_composed = nao_pca.inverse_transform(nao_normalized_decomposed)
+        nao_denormalized_composed = nao_scaler.inverse_transform(nao_normalized_composed)
+        # execGesture("127.0.0.1", 45817, nao[50][2:].tolist())
+        execGesture("127.0.0.1", 45817, nao_denormalized_composed[50][2:].tolist())
+
+        print("Components after decomposition: "+str(nao_pca.n_components_))
