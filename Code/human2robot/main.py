@@ -44,7 +44,7 @@ if __name__ == "__main__":
     human_train, human_test, human_val, nao_train, nao_test, nao_val = split(human_n_d, nao_n_d)
     
     # Save the shuffled pose for visualization
-    np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
+    # np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
 
     # Transfer the numpy to tensor in pytorch
     human_train_torch = torch.from_numpy(human_train).float()
