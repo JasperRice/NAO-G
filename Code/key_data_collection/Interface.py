@@ -31,5 +31,5 @@ if __name__ == "__main__":
     parser.add_argument("--filename", type=str, default="Gesture/Default.bvh", help="Filename of the human gesture.")
     args = parser.parse_args()
 
-    saveJointAngles(args.ip, args.port, "./data.txt", "T4F1", True, True)
+    saveJointAngles(args.ip, args.port, "key_data_collection/data.txt", "T4F9", True, True)
     # main(args.ip, args.port, args.fps, args.filename)
