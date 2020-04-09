@@ -46,6 +46,7 @@ if __name__ == "__main__":
     # Save the shuffled pose for visualization
     # np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
 
+
     # Transfer the numpy to tensor in pytorch
     human_train_torch = torch.from_numpy(human_train).float()
     human_val_torch = torch.from_numpy(human_val).float()
