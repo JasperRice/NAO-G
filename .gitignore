@@ -132,7 +132,3 @@ dmypy.json
 .vscode/
 
 # folders
-NAOKinematics/
-NTU_DB_Data_Loader/
-Documents/Application/
-Code/data/
