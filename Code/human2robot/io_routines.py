@@ -16,6 +16,9 @@ def readCSV(filename):
     array = df.to_numpy()
     return array
 
+def bvh2CSV(bvh_filename, csv_filename):
+    bvh_f = open()
+
 
 def saveNetwork(filename):
     # torch.save(filename)
@@ -28,6 +31,6 @@ def loadNetwork(filename):
 
 
 if __name__ == "__main__":
-    array = readCSV("HUMAN.csv")
+    array = readCSV("human2robot/dataset/HUMAN.csv")
     print(array)
     print(type(array))
