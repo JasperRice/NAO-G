@@ -2,10 +2,10 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from data_processing import decompose, normalize, split
-from execute import execGesture
-from io_routines import readCSV, saveNetwork
-from network import Net
+from human2robot.data_processing import decompose, normalize, split
+from human2robot.execute import execGesture
+from human2robot.io_routines import readCSV, saveNetwork
+from human2robot.network import Net
 
 import matplotlib.pyplot as plt
 import numpy as np
