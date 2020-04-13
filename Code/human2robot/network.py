@@ -20,10 +20,11 @@ class Net(nn.Module):
         # Define each layer here:
         self.input2hidden = nn.Linear(n_input, n_hidden)
         self.hidden2output = nn.Linear(n_hidden, n_output)
+        self.drop = nn.Dropout(0.25)
 
 
     def forward(self, x):
-        x = F.relu(self.input2hidden(x))
+        x = F.relu(self.drop(self.input2hidden(x)))
         x = self.hidden2output(x)
         return x
 
