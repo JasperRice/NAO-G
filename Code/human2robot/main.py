@@ -85,16 +85,16 @@ if __name__ == "__main__":
     plt.show()
 
     # Visualize train result on NAO
-    nao_out = prediction.detach().numpy()
-    nao_out = nao_pca.inverse_transform(nao_out)
-    nao_out = nao_scaler.inverse_transform(nao_out)
-    nao_out = nao_out.tolist()
+    # nao_out = prediction.detach().numpy()
+    # nao_out = nao_pca.inverse_transform(nao_out)
+    # nao_out = nao_scaler.inverse_transform(nao_out)
+    # nao_out = nao_out.tolist()
     # execGesture("127.0.0.1", 45817, nao_out[50][2:])
 
     # Visualize validation result on NAO
-    prediction = net(human_val_torch)
-    nao_out = prediction.detach().numpy()
-    nao_out = nao_pca.inverse_transform(nao_out)
-    nao_out = nao_scaler.inverse_transform(nao_out)
-    nao_out = nao_out.tolist()
-    execGesture("127.0.0.1", 45817, nao_out[5][2:])
+    # prediction = net(human_val_torch)
+    # nao_out = prediction.detach().numpy()
+    # nao_out = nao_pca.inverse_transform(nao_out)
+    # nao_out = nao_scaler.inverse_transform(nao_out)
+    # nao_out = nao_out.tolist()
+    # execGesture("127.0.0.1", 45817, nao_out[5][2:])
