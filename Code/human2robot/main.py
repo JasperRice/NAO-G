@@ -5,7 +5,12 @@ from sklearn.preprocessing import StandardScaler
 import sys
 sys.path.append('human2robot/')
 from data_processing import decompose, normalize, split
-# from execute import execGesture
+try:
+    from execute import execGesture
+except ImportError:
+    pass
+else:
+    sys.exit('Error when importing naoqi.')
 from io_routines import readCSV, saveNetwork
 from network import Net
 
@@ -16,28 +21,30 @@ import torch.nn as nn
 
 
 if __name__ == "__main__":
-    USE_HAND    = False
     NORMALIZE   = True
     DECOMPOSE   = True
     USE_TALK    = True
+    USE_HAND    = False
+    PATHNAME    = "human2robot/dataset/"
+    FILENAME    = ["TALK_01.csv", "TALK_02.csv", "TALK_04.csv", "TALK_05.csv",
+                   "HUMAN.csv",
+                   "NAO.csv"]
+    filename    = map(lambda x: PATHNAME + x, FILENAME)
     
     # Reproducibility
     torch.manual_seed(0)
 
     # Whole data "talk"
     if USE_TALK:
-        talk_pathname = "human2robot/dataset/"
-        talk_filename_list = ["TALK_01.csv", "TALK_02.csv", "TALK_04.csv", "TALK_05.csv"]
-        talk_filename_list = map(lambda x: talk_pathname + x, talk_filename_list)
-        talk_list = map(readCSV, talk_filename_list)
+        talk_list = map(readCSV, filename[:-2])
         talk = np.vstack(talk_list)
 
     # Normalize and decompose the dataset
     if NORMALIZE:
         pass
 
-    human = readCSV("human2robot/dataset/HUMAN.csv")
-    nao = readCSV("human2robot/dataset/NAO.csv")
+    human = readCSV(filename[-2])
+    nao = readCSV(filename[-1])
     nao = nao[:,2:] # Remove hands
     n_human, _ = np.shape(human)
     n_nao, _ = np.shape(nao)
