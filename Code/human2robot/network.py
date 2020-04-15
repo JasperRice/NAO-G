@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class Net(nn.Module):
     
-    def __init__(self, n_input, n_hidden, n_output):
+    def __init__(self, n_input, n_hidden, n_output, AF='relu', dropout_rate=0):
         """[summary]
         
         :param n_input: [description]
@@ -16,24 +16,29 @@ class Net(nn.Module):
         :type n_output: [type]
         """
         super(Net, self).__init__()
+        self.AF = AF
 
         # Define each layer here:
         self.input2hidden = nn.Linear(n_input, n_hidden)
         self.hidden2output = nn.Linear(n_hidden, n_output)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(dropout_rate)
 
 
     def forward(self, x):
-        # x = F.leaky_relu(self.dropout(self.input2hidden(x)))
-        x = F.relu(self.dropout(self.input2hidden(x)))
-        # x = F.sigmoid(self.dropout(self.input2hidden(x)))
-        # x = F.tanh(self.dropout(self.input2hidden(x)))
+        if self.AF == 'leaky_relu':
+            x = F.leaky_relu(self.dropout(self.input2hidden(x)))
+        elif self.AF == 'relu':
+            x = F.relu(self.dropout(self.input2hidden(x)))
+        elif self.AF == 'sigmoid':
+            x = F.sigmoid(self.dropout(self.input2hidden(x)))
+        elif self.AF == 'tanh':
+            x = F.tanh(self.dropout(self.input2hidden(x)))
+        else:
+            print('Warning: Activation function is invalid. Use Relu instead.')
+            x = F.relu(self.dropout(self.input2hidden(x)))
         x = self.hidden2output(x)
         return x
 
 
-if __name__ == "__main__":
-    net = Net(n_input=30, n_hidden=40, n_output=25)
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
-    loss_func = nn.MSELoss()
-    
+def numpy2tensor(x):
+    return torch.from_numpy(x).float()
