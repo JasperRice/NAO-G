@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
     # net = Net(n_input=human_pca.n_components_, n_hidden=250, n_output=nao_pca.n_components_)
-    net = Net(n_input=talk_pca.n_components_, n_hidden=64, n_output=nao_pca.n_components_)
+    net = Net(n_input=talk_pca.n_components_, n_hidden=300, n_output=nao_pca.n_components_)
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 

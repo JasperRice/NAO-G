@@ -24,8 +24,9 @@ class Net(nn.Module):
 
 
     def forward(self, x):
-        # x = F.relu(self.dropout(self.input2hidden(x)))
-        x = F.sigmoid(self.dropout(self.input2hidden(x)))
+        # x = F.leaky_relu(self.dropout(self.input2hidden(x)))
+        x = F.relu(self.dropout(self.input2hidden(x)))
+        # x = F.sigmoid(self.dropout(self.input2hidden(x)))
         # x = F.tanh(self.dropout(self.input2hidden(x)))
         x = self.hidden2output(x)
         return x
