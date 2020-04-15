@@ -16,17 +16,26 @@ import torch.nn as nn
 
 
 if __name__ == "__main__":
+    USE_HAND    = False
+    NORMALIZE   = True
+    DECOMPOSE   = True
+    USE_TALK    = True
+    
     # Reproducibility
     torch.manual_seed(0)
 
     # Whole data "talk"
-    talk_01 = readCSV("human2robot/dataset/TALK_01.csv")
-    talk_02 = readCSV("human2robot/dataset/TALK_02.csv")
-    talk_04 = readCSV("human2robot/dataset/TALK_04.csv")
-    talk_05 = readCSV("human2robot/dataset/TALK_05.csv")
-    talk = np.vstack((talk_01, talk_02))
+    if USE_TALK:
+        talk_pathname = "human2robot/dataset/"
+        talk_filename_list = ["TALK_01.csv", "TALK_02.csv", "TALK_04.csv", "TALK_05.csv"]
+        talk_filename_list = map(lambda x: talk_pathname + x, talk_filename_list)
+        talk_list = map(readCSV, talk_filename_list)
+        talk = np.vstack(talk_list)
 
     # Normalize and decompose the dataset
+    if NORMALIZE:
+        pass
+
     human = readCSV("human2robot/dataset/HUMAN.csv")
     nao = readCSV("human2robot/dataset/NAO.csv")
     nao = nao[:,2:] # Remove hands
@@ -63,13 +72,13 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
     # net = Net(n_input=human_pca.n_components_, n_hidden=250, n_output=nao_pca.n_components_)
-    net = Net(n_input=talk_pca.n_components_, n_hidden=300, n_output=nao_pca.n_components_)
+    net = Net(n_input=talk_pca.n_components_, n_hidden=64, n_output=nao_pca.n_components_)
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
     # Main loop for training
     old_val_err = 1000
-    for epoch in range(1000):
+    for epoch in range(500):
         print("=====> Epoch: "+str(epoch+1))
 
         # Train
