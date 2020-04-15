@@ -4,13 +4,13 @@ from sklearn.preprocessing import StandardScaler
 
 import sys
 sys.path.append('human2robot/')
-from data_processing import decompose, normalize, split
 try:
     from execute import execGesture
 except ImportError:
     pass
 else:
     sys.exit('Error when importing naoqi.')
+from data_processing import decompose, normalize, split
 from io_routines import readCSV, saveNetwork
 from network import Net
 
@@ -34,36 +34,34 @@ if __name__ == "__main__":
     # Reproducibility
     torch.manual_seed(0)
 
-    # Whole data "talk"
+    # Read dataset
     if USE_TALK:
         talk_list = map(readCSV, filename[:-2])
         talk = np.vstack(talk_list)
 
+    human = readCSV(filename[-2])
+    nao = readCSV(filename[-1]) if USE_HAND else readCSV(filename[-1])[:,2:]
+    n = np.size(human, 0)
+    if n != np.size(nao, 0):
+        sys.exit("Numbers of input and target are different.")
+
     # Normalize and decompose the dataset
     if NORMALIZE:
-        pass
+        human, human_scaler = normalize(human)
+        nao, nao_scaler = normalize(nao)
+        talk, _ = normalize(talk)
 
-    human = readCSV(filename[-2])
-    nao = readCSV(filename[-1])
-    nao = nao[:,2:] # Remove hands
-    n_human, _ = np.shape(human)
-    n_nao, _ = np.shape(nao)
-    if n_human is not n_nao:
-        print("Number of input and target are different")
-        exit()
-    n = n_human
+    if DECOMPOSE:
+        if USE_TALK:
+            _, human_pca = decompose(talk)
+            human = human_pca.transform(human)
+        else:
+            human, human_pca = decompose(human)
 
-    talk_n, _ = normalize(talk)
-    _, talk_pca = decompose(talk_n)
-    human_n, human_scaler = normalize(human)
-    # human_n_d, human_pca = decompose(human_n) # Use human to decompose
-    human_n_d = talk_pca.transform(human_n) # Use talk to decompose
-    
-    nao_n, nao_scaler = normalize(nao)
-    nao_n_d, nao_pca = decompose(nao_n)
+        nao, nao_pca = decompose(nao)
 
     # Split the dataset into train, test, and validation
-    human_train, human_test, human_val, nao_train, nao_test, nao_val = split(human_n_d, nao_n_d)
+    human_train, human_test, human_val, nao_train, nao_test, nao_val = split(human, nao)
     
     # Save the shuffled pose for visualization
     # np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
