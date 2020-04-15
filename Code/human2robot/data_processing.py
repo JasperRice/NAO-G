@@ -41,7 +41,7 @@ def split(X, Y):
     :param Y: [description]
     :type Y: numpy.ndarray
     :return: [description]
-    :rtype: [type]
+    :rtype: list
     """
     X_train, X_test, Y_train, Y_test = train_test_split(
         X, Y, test_size=0.2, random_state=1000
@@ -49,7 +49,7 @@ def split(X, Y):
     X_test, X_val, Y_test, Y_val = train_test_split(
         X_test, Y_test, test_size=0.5, random_state=2000
     )
-    return X_train, X_test, X_val, Y_train, Y_test, Y_val
+    return [X_train, X_test, X_val, Y_train, Y_test, Y_val]
 
 
 if __name__ == "__main__":
