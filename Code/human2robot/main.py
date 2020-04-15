@@ -6,13 +6,11 @@ import sys
 sys.path.append('human2robot/')
 try:
     from execute import execGesture
-except ImportError:
+except:
     pass
-else:
-    sys.exit('Error when importing naoqi.')
 from data_processing import decompose, normalize, split
 from io_routines import readCSV, saveNetwork
-from network import Net
+from network import Net, numpy2tensor
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,8 +23,13 @@ if __name__ == "__main__":
     DECOMPOSE   = True
     USE_TALK    = True
     USE_HAND    = False
+    STOP_EARLY  = False
+    MAX_EPOCH   = 300
+    N_HIDDEN    = 64
+    DO_RATE     = 0.0
+    AF          = 'relu'
     PATHNAME    = "human2robot/dataset/"
-    FILENAME    = ["TALK_01.csv", "TALK_02.csv", "TALK_04.csv", "TALK_05.csv",
+    FILENAME    = ["TALK_01.csv", "TALK_02.csv", #"TALK_04.csv", "TALK_05.csv",
                    "HUMAN.csv",
                    "NAO.csv"]
     filename    = map(lambda x: PATHNAME + x, FILENAME)
@@ -61,29 +64,29 @@ if __name__ == "__main__":
         nao, nao_pca = decompose(nao)
 
     # Split the dataset into train, test, and validation
-    human_train, human_test, human_val, nao_train, nao_test, nao_val = split(human, nao)
+    dataset = split(human, nao)
     
     # Save the shuffled pose for visualization
     # np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
 
 
     # Transfer the numpy to tensor in pytorch
-    human_train_torch = torch.from_numpy(human_train).float()
-    human_val_torch = torch.from_numpy(human_val).float()
-    human_test_torch = torch.from_numpy(human_test).float()
-    nao_train_torch = torch.from_numpy(nao_train).float()
-    nao_val_torch = torch.from_numpy(nao_val).float()
-    nao_test_torch = torch.from_numpy(nao_test).float()
+    dataset_torch = map(numpy2tensor, dataset)
+    human_train_torch = dataset_torch[0]
+    human_val_torch = dataset_torch[1]
+    human_test_torch = dataset_torch[2]
+    nao_train_torch = dataset_torch[3]
+    nao_val_torch = dataset_torch[4]
+    nao_test_torch = dataset_torch[5]
 
     # Define Neural Network and train
-    # net = Net(n_input=human_pca.n_components_, n_hidden=250, n_output=nao_pca.n_components_)
-    net = Net(n_input=talk_pca.n_components_, n_hidden=64, n_output=nao_pca.n_components_)
+    net = Net(n_input=human_pca.n_components_, n_hidden=N_HIDDEN, n_output=nao_pca.n_components_, AF=AF, dropout_rate=DO_RATE)
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
     # Main loop for training
     old_val_err = 1000
-    for epoch in range(500):
+    for epoch in range(MAX_EPOCH):
         print("=====> Epoch: "+str(epoch+1))
 
         # Train
@@ -91,9 +94,8 @@ if __name__ == "__main__":
         loss = loss_func(prediction, nao_train_torch)
         val_err = loss_func(net(human_val_torch), nao_val_torch)
         
-        if val_err > old_val_err:
-            # break
-            pass
+        if STOP_EARLY and val_err > old_val_err:
+            break
         old_val_err = val_err
 
         optimizer.zero_grad()
