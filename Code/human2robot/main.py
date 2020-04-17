@@ -20,7 +20,9 @@ import torch.nn as nn
 
 if __name__ == "__main__":
     NAO_IP      = "127.0.0.1"
-    NAO_PORT    = 45817
+    NAO_PORT    = 43767
+    VISUALIZE   = True
+    ON_SET      = 0 # Visualize on 0: train, 1: validation or 3: test
     NORMALIZE   = True
     DECOMPOSE   = True
     USE_TALK    = True
@@ -114,17 +116,11 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # Visualize train result on NAO
-    nao_out = prediction.detach().numpy()
-    nao_out = nao_pca.inverse_transform(nao_out)
-    nao_out = nao_scaler.inverse_transform(nao_out)
-    execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
-        if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
-
-    # Visualize validation result on NAO
-    # prediction = net(human_val_torch)
-    # nao_out = prediction.detach().numpy()
-    # nao_out = nao_pca.inverse_transform(nao_out)
-    # nao_out = nao_scaler.inverse_transform(nao_out)
-    # nao_out = nao_out.tolist()
-    # execGesture("127.0.0.1", 45817, nao_out[5][2:])
+    # Visualize result on NAO
+    if VISUALIZE:
+        prediction = net(dataset_torch[ON_SET])
+        nao_out = prediction.detach().numpy()
+        nao_out = nao_pca.inverse_transform(nao_out)
+        nao_out = nao_scaler.inverse_transform(nao_out)
+        execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
+            if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
