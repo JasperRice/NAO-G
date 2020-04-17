@@ -18,7 +18,7 @@ def execGesture(IP, PORT, GESTURE, TIME=None):
     """
     motion = ALProxy("ALMotion", IP, PORT)
     if TIME == None:
-        TIME = [[0.5 * (i+1)] * len(GESTURE[0]) for i in range(len(GESTURE))]
+        TIME = [[5 * (i+1)] * len(GESTURE[0]) for i in range(len(GESTURE))]
     motion.angleInterpolation("Joints", GESTURE, TIME, True)
 
 
