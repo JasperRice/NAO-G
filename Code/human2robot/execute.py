@@ -18,11 +18,16 @@ def execGesture(IP, PORT, JOINT, TIME=None):
     """
     motion = ALProxy("ALMotion", IP, PORT)
     if TIME == None:
-        TIME = [[5 * (i+1)] * len(JOINT[0]) for i in range(len(JOINT))]
+        TIME = [[1.0] * len(JOINT[0]) for _ in range(len(JOINT))]
+        # TIME = [[0.5 * (i+1)] * len(JOINT[0]) for i in range(len(JOINT))]
 
-    print(len(JOINT), len(JOINT[0]))
-    print(len(TIME), len(TIME[0]))
-    motion.angleInterpolation("Joints", JOINT, TIME, True)
+    # motion.angleInterpolation("Joints", JOINT, TIME, True)
+    i = 0
+    for J, T in zip(JOINT, TIME):
+        i += 1
+        print("=====> Motion index: %d" % i)
+        motion.angleInterpolation("Joints", J, T, True)
+        raw_input("Press any key to continue ...")
 
 
 if __name__ == "__main__":
