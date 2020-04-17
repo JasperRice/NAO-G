@@ -27,7 +27,7 @@ def execGesture(IP, PORT, JOINT, TIME=None):
         i += 1
         print("=====> Motion index: %d" % i)
         motion.angleInterpolation("Joints", J, T, True)
-        raw_input("Press any key to continue ...")
+        raw_input("\tPress ENTER to continue ...")
 
 
 if __name__ == "__main__":

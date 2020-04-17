@@ -22,12 +22,12 @@ if __name__ == "__main__":
     NAO_IP      = "127.0.0.1"
     NAO_PORT    = 43767
     VISUALIZE   = True
-    ON_SET      = 0 # Visualize on 0: train, 1: validation or 3: test
+    ON_SET      = 1 # Visualize on [0: train, 1: validation or 2: test]
     NORMALIZE   = True
     DECOMPOSE   = True
-    USE_TALK    = True
+    USE_TALK    = True # 
     USE_HAND    = False
-    STOP_EARLY  = False
+    STOP_EARLY  = True
     SAVE_DATA   = False
     MAX_EPOCH   = 300
     N_HIDDEN    = 64
