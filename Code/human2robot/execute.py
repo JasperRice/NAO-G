@@ -4,19 +4,22 @@ import time
 
 start = time.time()
 
-def execGesture(IP, PORT, GESTURE):
+def execGesture(IP, PORT, GESTURE, TIME=None):
     """Execute a static gesture on virtual or physical NAO robot
     
     :param IP: Adress IP of the NAO robot
     :type IP: str
     :param PORT: Port number of the NAO robot
     :type PORT: int
-    :param GESTURE: A list of joint angles of NAO
-    :type GESTURE: list
+    :param GESTURE: A list of lists of joint angles of NAO
+    :type GESTURE: list[list]
+    :param TIME: A list of lists of time
+    :type TIME: list[list]
     """
     motion = ALProxy("ALMotion", IP, PORT)
-    T = [0.5] * len(GESTURE)
-    motion.angleInterpolation("Joints", GESTURE, T, True)
+    if TIME == None:
+        TIME = [[0.5] * len(GESTURE[0]) for _ in range(len(GESTURE))]
+    motion.angleInterpolation("Joints", GESTURE, TIME, True)
 
 
 if __name__ == "__main__":
