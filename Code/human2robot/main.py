@@ -120,7 +120,15 @@ if __name__ == "__main__":
     if VISUALIZE:
         prediction = net(dataset_torch[ON_SET])
         nao_out = prediction.detach().numpy()
-        nao_out = nao_pca.inverse_transform(nao_out)
-        nao_out = nao_scaler.inverse_transform(nao_out)
+        try:
+            nao_out = nao_pca.inverse_transform(nao_out)
+        except:
+            pass
+
+        try:
+            nao_out = nao_scaler.inverse_transform(nao_out)
+        except:
+            pass
+        
         execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
             if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
