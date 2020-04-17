@@ -24,6 +24,7 @@ if __name__ == "__main__":
     USE_TALK    = True
     USE_HAND    = False
     STOP_EARLY  = False
+    SAVE_DATA   = False
     MAX_EPOCH   = 300
     N_HIDDEN    = 64
     DO_RATE     = 0.0
@@ -65,12 +66,15 @@ if __name__ == "__main__":
 
     # Split the dataset into train, test, and validation
     dataset = split(human, nao)
-    
+
     # Save the shuffled pose for visualization
-    # np.savetxt("npSaveTest.txt", human_scaler.inverse_transform(talk_pca.inverse_transform(human_train)))
-
-
-    # Transfer the numpy to tensor in pytorch
+    if SAVE_DATA:
+        np.savetxt("human_train.txt", human_scaler.inverse_transform(human_pca.inverse_transform(dataset[0])))
+        np.savetxt("human_val.txt", human_scaler.inverse_transform(human_pca.inverse_transform(dataset[1])))
+        np.savetxt("human_test.txt", human_scaler.inverse_transform(human_pca.inverse_transform(dataset[2])))
+        exit()
+    
+   # Transfer the numpy to tensor in pytorch
     dataset_torch = map(numpy2tensor, dataset)
     human_train_torch = dataset_torch[0]
     human_val_torch = dataset_torch[1]
