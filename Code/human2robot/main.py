@@ -20,19 +20,19 @@ import torch.nn as nn
 
 if __name__ == "__main__":
     NAO_IP      = "127.0.0.1"
-    NAO_PORT    = 43767
+    NAO_PORT    = 46075
     VISUALIZE   = True
-    ON_SET      = 1 # Visualize on [0: train, 1: validation or 2: test]
-    NORMALIZE   = True
-    DECOMPOSE   = True
-    USE_TALK    = True # 
+    ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
+    NORMALIZE   = True          # If normalize dataset
+    DECOMPOSE   = False         # If use PCA to decompose dataset
+    USE_TALK    = True          # If use the whole Natural Talking dataset to decompose
     USE_HAND    = False
-    STOP_EARLY  = True
-    SAVE_DATA   = False
-    MAX_EPOCH   = 300
-    N_HIDDEN    = 64
-    DO_RATE     = 0.0
-    AF          = 'relu'
+    STOP_EARLY  = False         # If stop earlier based on the validation error
+    SAVE_DATA   = False         # If save the shuffled human gesture dataset
+    MAX_EPOCH   = 250
+    N_HIDDEN    = 128
+    DO_RATE     = 0.25          # Dropout Rate
+    AF          = 'leaky_relu'  # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
     PATHNAME    = "human2robot/dataset/"
     FILENAME    = ["TALK_01.csv", "TALK_02.csv", #"TALK_04.csv", "TALK_05.csv",
                    "HUMAN.csv",
@@ -88,7 +88,8 @@ if __name__ == "__main__":
     nao_test_torch = dataset_torch[5]
 
     # Define Neural Network and train
-    net = Net(n_input=human_pca.n_components_, n_hidden=N_HIDDEN, n_output=nao_pca.n_components_, AF=AF, dropout_rate=DO_RATE)
+    net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), AF=AF, dropout_rate=DO_RATE)
+    net.train()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
@@ -114,9 +115,10 @@ if __name__ == "__main__":
         plt.scatter(epoch, loss.data.numpy(), s=1, c='r')
         plt.scatter(epoch, val_err.data.numpy(), s=1, c='g')
 
-    plt.show()
+    plt.savefig(AF+'_Hidden='+str(N_HIDDEN)+'_Normalize='+str(NORMALIZE)+'_Decompose='+str(DECOMPOSE)+'_Dropout='+str(DO_RATE)+'.png')
 
     # Visualize result on NAO
+    net.eval()
     if VISUALIZE:
         prediction = net(dataset_torch[ON_SET])
         nao_out = prediction.detach().numpy()
