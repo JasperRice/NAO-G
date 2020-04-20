@@ -41,4 +41,11 @@ class Net(nn.Module):
 
 
 def numpy2tensor(x):
+    """[summary]
+    
+    :param x: [description]
+    :type x: [type]
+    :return: [description]
+    :rtype: [type]
+    """    
     return torch.from_numpy(x).float()
