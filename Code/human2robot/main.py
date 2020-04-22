@@ -23,11 +23,13 @@ if __name__ == "__main__":
     NAO_PORT    = 34023         # The port number of the NAO robot
     VISUALIZE   = True          # If visualize the training result on NAO based on the IP and Port defined
     ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
+    PLAY_TALK   = True          # If play the sequence
+    PLAY_SET    = ""
+    USE_HAND    = False         # If use the hand data recorded in the dataset
+    USE_TALK    = True          # If use the whole Natural Talking dataset to decompose
     NORMALIZE   = False         # If normalize dataset
     DECOMPOSE   = False         # If use PCA to decompose dataset
-    USE_TALK    = False         # If use the whole Natural Talking dataset to decompose
-    USE_HAND    = False         # If use the hand data recorded in the dataset
-    STOP_EARLY  = True          # If stop earlier based on the validation error
+    STOP_EARLY  = False         # If stop earlier based on the validation error
     SAVE_DATA   = False         # If save the shuffled human gesture dataset
     MAX_EPOCH   = 500           # The maximum training epoch
     N_HIDDEN    = 128           # The number of nodes in the hidden layer
@@ -59,7 +61,8 @@ if __name__ == "__main__":
     if NORMALIZE:
         human, human_scaler = normalize(human)
         nao, nao_scaler = normalize(nao)
-        talk, _ = normalize(talk)
+        if USE_TALK:
+            talk, _ = normalize(talk)
 
     if DECOMPOSE:
         if USE_TALK:
@@ -160,3 +163,9 @@ if __name__ == "__main__":
 
         execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
             if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
+
+
+    # Play the talk
+    net.eval()
+    if PLAY_TALK:
+        pass
