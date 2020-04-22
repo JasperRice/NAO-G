@@ -21,7 +21,7 @@ import torch.nn as nn
 if __name__ == "__main__":
     NAO_IP      = "127.0.0.1"
     NAO_PORT    = 46075
-    VISUALIZE   = True
+    VISUALIZE   = False
     ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
     NORMALIZE   = True          # If normalize dataset
     DECOMPOSE   = False         # If use PCA to decompose dataset
@@ -89,7 +89,6 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
     net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), AF=AF, dropout_rate=DO_RATE)
-    net.train()
     optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
     loss_func = nn.MSELoss()
 
@@ -99,8 +98,10 @@ if __name__ == "__main__":
         print("=====> Epoch: "+str(epoch+1))
 
         # Train
+        net.train()
         prediction = net(human_train_torch)
         loss = loss_func(prediction, nao_train_torch)
+        net.eval()
         val_err = loss_func(net(human_val_torch), nao_val_torch)
         
         if STOP_EARLY and val_err > old_val_err:
