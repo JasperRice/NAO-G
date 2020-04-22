@@ -4,17 +4,21 @@ import torch.nn.functional as F
 
 
 class Net(nn.Module):
-    
     def __init__(self, n_input, n_hidden, n_output, AF='relu', dropout_rate=0):
-        """[summary]
+     
+        """The feed forward neural network with one single hidden layer
         
-        :param n_input: [description]
-        :type n_input: [type]
-        :param n_hidden: The dimensions for each hidden layer.
+        :param n_input: The dimension of the input layer
+        :type n_input: int
+        :param n_hidden: The dimension of the hidden layer
         :type n_hidden: int
-        :param n_output: [description]
-        :type n_output: [type]
-        """
+        :param n_output: The dimension of the output layer
+        :type n_output: int
+        :param AF: The activation function to be used, defaults to 'relu'
+        :type AF: str, optional
+        :param dropout_rate: The dropout rate of the hidden layer, defaults to 0
+        :type dropout_rate: int, optional
+        """   
         super(Net, self).__init__()
         self.AF = AF
 
@@ -22,7 +26,6 @@ class Net(nn.Module):
         self.input2hidden = nn.Linear(n_input, n_hidden)
         self.hidden2output = nn.Linear(n_hidden, n_output)
         self.dropout = nn.Dropout(dropout_rate)
-
 
     def forward(self, x):
         if self.AF == 'leaky_relu':
@@ -41,11 +44,12 @@ class Net(nn.Module):
 
 
 def numpy2tensor(x):
-    """[summary]
+    """Transter type numpy.ndarray to type torch.Tensor and change the precision to float
+    Write in function so that can be used in functional programming
     
-    :param x: [description]
-    :type x: [type]
-    :return: [description]
-    :rtype: [type]
+    :param x: The numpy data to be transformed
+    :type x: numpy.ndarray
+    :return: The torch data after transformation
+    :rtype: torch.Tensor
     """    
     return torch.from_numpy(x).float()
