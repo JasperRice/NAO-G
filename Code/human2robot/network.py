@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, AF='relu', dropout_rate=0):
-     
         """The feed forward neural network with one single hidden layer
         
         :param n_input: The dimension of the input layer
