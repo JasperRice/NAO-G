@@ -8,9 +8,9 @@ from sklearn.preprocessing import StandardScaler
 def normalize(data):
     """Normalize the data and save the scaler so that the inverse tranform can be done
     
-    :param data: [description]
+    :param data: The data to be normalized
     :type data: numpy.ndarray
-    :return: [description]
+    :return: Normalized data
     :rtype: numpy.ndarray, sklearn.preprocessing.data.StandardScaler
     """
     scaler = StandardScaler()
@@ -21,10 +21,10 @@ def normalize(data):
 def decompose(data):
     """Use PCA to decompose the dimensionality of data
     
-    :param data: [description]
+    :param data: The data to be decomposed
     :type data: numpy.ndarray
-    :return: [description]
-    :rtype: [type]
+    :return: Decomposed data
+    :rtype: numpy.ndarray, sklearn.decompose.data.PCA
     """
     pca = PCA(0.95)
     pca.fit(data)
@@ -36,12 +36,12 @@ def split(X, Y):
     """Seperate the dataset into train, test, and validation
     X and Y should have same amount of data
     
-    :param X: [description]
+    :param X: One dataset, should have same amount of data with Y
     :type X: numpy.ndarray
-    :param Y: [description]
+    :param Y: One dataset, should have same amount of data with X
     :type Y: numpy.ndarray
-    :return: [description]
-    :rtype: list
+    :return: The list of seperated dataset
+    :rtype: list[numpy.ndarray]
     """
     X_train, X_test, Y_train, Y_test = train_test_split(
         X, Y, test_size=0.2, random_state=1000
