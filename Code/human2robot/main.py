@@ -24,7 +24,7 @@ if __name__ == "__main__":
     VISUALIZE   = True          # If visualize the training result on NAO based on the IP and Port defined
     ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
     PLAY_TALK   = True          # If play the sequence
-    PLAY_SET    = ""
+    PLAY_SET    = 0
     USE_HAND    = False         # If use the hand data recorded in the dataset
     USE_TALK    = True          # If use the whole Natural Talking dataset to decompose
     NORMALIZE   = False         # If normalize dataset
@@ -128,16 +128,18 @@ if __name__ == "__main__":
         net.train()
         prediction = net(human_train_torch)
         loss = loss_func(prediction, nao_train_torch)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Validation error
         net.eval()
         val_err = loss_func(net(human_val_torch), nao_val_torch)
         
         if STOP_EARLY and val_err > old_val_err:
             break
         old_val_err = val_err
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
 
         # Plot the error
         plt.scatter(epoch, loss.data.numpy(), s=1, c='r')
@@ -168,4 +170,5 @@ if __name__ == "__main__":
     # Play the talk
     net.eval()
     if PLAY_TALK:
-        pass
+
+        execGesture(NAO_IP, NAO_PORT, )
