@@ -103,7 +103,7 @@ if __name__ == "__main__":
         exit()
 
 
-   # Transfer the numpy to tensor in pytorch
+    # Transfer the numpy to tensor in pytorch
     dataset_torch = map(numpy2tensor, dataset)
     human_train_torch = dataset_torch[0]
     human_val_torch = dataset_torch[1]
@@ -149,26 +149,36 @@ if __name__ == "__main__":
 
 
     # Visualize result on NAO
-    net.eval()
     if VISUALIZE:
+        net.eval()
         prediction = net(dataset_torch[ON_SET])
         nao_out = prediction.detach().numpy()
         try:
             nao_out = nao_pca.inverse_transform(nao_out)
         except NameError:
             pass
-
         try:
             nao_out = nao_scaler.inverse_transform(nao_out)
         except NameError:
             pass
-
         execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
             if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
 
 
     # Play the talk
-    net.eval()
     if PLAY_TALK:
-
-        execGesture(NAO_IP, NAO_PORT, )
+        net.eval()
+        talk_play = readCSV(filename[PLAY_SET])
+        talk_play = torch.from_numpy(talk_play).float()
+        prediction = net(talk_play)
+        nao_out = prediction.detach().numpy()
+        try:
+            nao_out = nao_pca.inverse_transform(nao_out)
+        except NameError:
+            pass
+        try:
+            nao_out = nao_scaler.inverse_transform(nao_out)
+        except NameError:
+            pass
+        execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
+            if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
