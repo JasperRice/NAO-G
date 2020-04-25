@@ -58,7 +58,25 @@ class MultiLayerNet(nn.Module):
         :type dropout_rate: int, optional
         """   
         super(MultiLayerNet, self).__init__()
-        self.AF = AF
+
+        self.activations = nn.ModuleDict({
+            'relu':             nn.ReLU(),
+            'relu6':            nn.ReLU6(),
+            'leaky_relu':       nn.LeakyReLU(),
+            'celu':             nn.CELU(),
+            'gelu':             nn.GELU(),
+            'selu':             nn.SELU(),
+            'softplus':         nn.Softplus(),
+            'sigmoid':          nn.Sigmoid(),
+            'log_sigmoid':      nn.LogSigmoid(),
+            'tanh':             nn.Tanh()
+        })
+
+        if AF not in self.activations:
+            print('Warning: Activation function is invalid. Use Relu instead.')
+            AF = 'relu'
+
+        self.AF = self.activations[AF]
 
         # Define each layer here:
         self.LayerList = nn.ModuleList(nn.Linear(n_input, n_hiddens[0]))
@@ -67,17 +85,19 @@ class MultiLayerNet(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
-        if self.AF == 'leaky_relu':
-            x = F.leaky_relu(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'relu':
-            x = F.relu(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'sigmoid':
-            x = F.sigmoid(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'tanh':
-            x = F.tanh(self.dropout(self.input2hidden(x)))
-        else:
-            print('Warning: Activation function is invalid. Use Relu instead.')
-            x = F.relu(self.dropout(self.input2hidden(x)))
+        for layer in self.LayerList:
+            if self.AF == 'leaky_relu':
+                x = F.leaky_relu(self.dropout(self.input2hidden(x)))
+            elif self.AF == 'relu':
+                x = F.relu(self.dropout(self.input2hidden(x)))
+            elif self.AF == 'sigmoid':
+                x = F.sigmoid(self.dropout(self.input2hidden(x)))
+            elif self.AF == 'tanh':
+                x = F.tanh(self.dropout(self.input2hidden(x)))
+            else:
+                
+                x = F.relu(self.dropout(self.input2hidden(x)))
+
         x = self.hidden2output(x)
         return x
 
