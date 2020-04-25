@@ -4,6 +4,20 @@ import time
 
 start = time.time()
 
+
+def boundAngles(IP, PORT, JOINT):
+    """Bound the angles within the angle range of NAO's joints
+
+    :param IP: Adress IP of the NAO robot
+    :type IP: str
+    :param PORT: Port number of the NAO robot
+    :type PORT: int
+    :param JOINT: A list of lists of joint angles of NAO
+    :type JOINT: list[list]
+    """
+    pass
+
+
 def execGesture(IP, PORT, JOINT, TIME=None):
     """Execute a static gesture on virtual or physical NAO robot
     
