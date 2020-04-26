@@ -64,6 +64,7 @@ class MultiLayerNet(nn.Module):
         self.LayerList = nn.ModuleList(nn.Linear(n_input, n_hiddens[0]))
         self.LayerList.append(nn.Linear(n_hiddens[i], n_hiddens[i+1]) for i in range(len(n_hiddens)-1))
         self.LayerList.append(nn.Linear(n_hiddens[-1], n_output))
+        
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
