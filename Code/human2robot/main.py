@@ -39,7 +39,8 @@ if __name__ == "__main__":
     DO_RATE     = 0.25          # Dropout rate of the hidden layer
     STOP_EARLY  = True          # If stop earlier based on the validation error
     STOP_THRES  = 0.005         # If the current validation error is STOP_THRES larger than the lowest error, stop training
-    
+    STOP_RATE   = 0.05
+
     SAVE_DATA   = False         # If save the shuffled human gesture dataset
     PATHNAME    = "human2robot/dataset/"
     FILENAME    = ["TALK_01.csv", "TALK_02.csv", #"TALK_04.csv", "TALK_05.csv",
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         val_err = loss_func(net(human_val_torch), nao_val_torch)
         
         if STOP_EARLY:
-            if val_err - min_error > STOP_THRES:
+            if val_err - min_error > STOP_RATE * min_error:
                 break
             elif val_err < min_error:
                 min_error = val_err
