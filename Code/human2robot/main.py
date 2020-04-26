@@ -20,21 +20,27 @@ import torch.nn as nn
 
 if __name__ == "__main__":
     NAO_IP      = "127.0.0.1"   # The IP address of the NAO robot, could be virtual or physical robot
-    NAO_PORT    = 34023         # The port number of the NAO robot
+    NAO_PORT    = 41133         # The port number of the NAO robot
+
     VISUALIZE   = True          # If visualize the training result on NAO based on the IP and Port defined
     ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
-    PLAY_TALK   = True          # If play the sequence
+    PLAY_TALK   = not VISUALIZE # If play the sequence
     PLAY_SET    = 0
-    USE_HAND    = False         # If use the hand data recorded in the dataset
+
     USE_TALK    = True          # If use the whole Natural Talking dataset to decompose
-    NORMALIZE   = False         # If normalize dataset
+    USE_HAND    = False         # If use the hand data recorded in the dataset
+    NORMALIZE   = True          # If normalize dataset
     DECOMPOSE   = False         # If use PCA to decompose dataset
-    STOP_EARLY  = False         # If stop earlier based on the validation error
-    SAVE_DATA   = False         # If save the shuffled human gesture dataset
-    MAX_EPOCH   = 500           # The maximum training epoch
-    N_HIDDEN    = 128           # The number of nodes in the hidden layer
-    DO_RATE     = 0.25          # Dropout rate of the hidden layer
+
+    MAX_EPOCH   = 10000         # The maximum training epoch
     AF          = 'leaky_relu'  # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
+    N_HIDDEN    = 128           # The number of nodes in the hidden layer
+    L_RATE      = 0.1           # The learning rate of the network
+    DO_RATE     = 0.25          # Dropout rate of the hidden layer
+    STOP_EARLY  = True          # If stop earlier based on the validation error
+    STOP_THRES  = 0.005         # If the current validation error is STOP_THRES larger than the lowest error, stop training
+    
+    SAVE_DATA   = False         # If save the shuffled human gesture dataset
     PATHNAME    = "human2robot/dataset/"
     FILENAME    = ["TALK_01.csv", "TALK_02.csv", #"TALK_04.csv", "TALK_05.csv",
                    "HUMAN.csv",
@@ -115,12 +121,12 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
     net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), AF=AF, dropout_rate=DO_RATE)
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
+    optimizer = torch.optim.SGD(net.parameters(), lr=L_RATE)
     loss_func = nn.MSELoss()
 
 
     # Main loop for training
-    old_val_err = 1000
+    min_error = np.inf
     for epoch in range(MAX_EPOCH):
         print("=====> Epoch: "+str(epoch+1))
 
@@ -137,15 +143,18 @@ if __name__ == "__main__":
         net.eval()
         val_err = loss_func(net(human_val_torch), nao_val_torch)
         
-        if STOP_EARLY and val_err > old_val_err:
-            break
-        old_val_err = val_err
+        if STOP_EARLY:
+            if val_err - min_error > STOP_THRES:
+                break
+            elif val_err < min_error:
+                min_error = val_err
 
         # Plot the error
         plt.scatter(epoch, loss.data.numpy(), s=1, c='r')
         plt.scatter(epoch, val_err.data.numpy(), s=1, c='g')
 
-    plt.savefig(AF+'_Hidden='+str(N_HIDDEN)+'_Normalize='+str(NORMALIZE)+'_Decompose='+str(DECOMPOSE)+'_Dropout='+str(DO_RATE)+'.png')
+    plt.show()
+    plt.savefig(AF+'_LR='+str(L_RATE)+'_Hidden='+str(N_HIDDEN)+'_Normalize='+str(NORMALIZE)+'_Decompose='+str(DECOMPOSE)+'_Dropout='+str(DO_RATE)+'.png')
 
 
     # Visualize result on NAO
@@ -169,7 +178,7 @@ if __name__ == "__main__":
     if PLAY_TALK:
         net.eval()
         talk_play = readCSV(filename[PLAY_SET])
-        talk_play = torch.from_numpy(talk_play).float()
+        talk_play = numpy2tensor(talk_play)
         prediction = net(talk_play)
         nao_out = prediction.detach().numpy()
         try:

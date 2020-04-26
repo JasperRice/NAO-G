@@ -19,6 +19,20 @@ class Net(nn.Module):
         :type dropout_rate: int, optional
         """   
         super(Net, self).__init__()
+
+        self.activations = nn.ModuleDict({
+            'relu':             nn.ReLU(),
+            'relu6':            nn.ReLU6(),
+            'leaky_relu':       nn.LeakyReLU(),
+            'celu':             nn.CELU(),
+            'gelu':             nn.GELU(),
+            'selu':             nn.SELU(),
+            'softplus':         nn.Softplus(),
+            'sigmoid':          nn.Sigmoid(),
+            'log_sigmoid':      nn.LogSigmoid(),
+            'tanh':             nn.Tanh()
+        })
+
         self.AF = AF
 
         # Define each layer here:
@@ -45,6 +59,7 @@ class Net(nn.Module):
 class MultiLayerNet(nn.Module):
     def __init__(self, n_input, n_hiddens, n_output, AF='relu', dropout_rate=0):
         """The feed forward neural network with multiple hidden layers
+        TODO: Add threshold layer at the end of the net
         
         :param n_input: The dimension of the input layer
         :type n_input: int
@@ -58,27 +73,35 @@ class MultiLayerNet(nn.Module):
         :type dropout_rate: int, optional
         """   
         super(MultiLayerNet, self).__init__()
-        self.AF = AF
+
+        self.activations = nn.ModuleDict({
+            'relu':             nn.ReLU(),
+            'relu6':            nn.ReLU6(),
+            'leaky_relu':       nn.LeakyReLU(),
+            'celu':             nn.CELU(),
+            'gelu':             nn.GELU(),
+            'selu':             nn.SELU(),
+            'softplus':         nn.Softplus(),
+            'sigmoid':          nn.Sigmoid(),
+            'log_sigmoid':      nn.LogSigmoid(),
+            'tanh':             nn.Tanh()
+        })
+
+        if AF not in self.activations:
+            print('Warning: Activation function is invalid. Using Relu instead.')
+            AF = 'relu'
 
         # Define each layer here:
         self.LayerList = nn.ModuleList(nn.Linear(n_input, n_hiddens[0]))
         self.LayerList.append(nn.Linear(n_hiddens[i], n_hiddens[i+1]) for i in range(len(n_hiddens)-1))
-        self.LayerList.append(nn.Linear(n_hiddens[-1], n_output))
-        
+        # self.LayerList.append(nn.Linear(n_hiddens[-1], n_output))
+        self.hidden2output = nn.Linear(n_hiddens[-1], n_output)
+        self.AF = self.activations[AF]
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
-        if self.AF == 'leaky_relu':
-            x = F.leaky_relu(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'relu':
-            x = F.relu(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'sigmoid':
-            x = F.sigmoid(self.dropout(self.input2hidden(x)))
-        elif self.AF == 'tanh':
-            x = F.tanh(self.dropout(self.input2hidden(x)))
-        else:
-            print('Warning: Activation function is invalid. Use Relu instead.')
-            x = F.relu(self.dropout(self.input2hidden(x)))
+        for layer in self.LayerList:
+            x = self.AF(self.dropout(layer(x)))
         x = self.hidden2output(x)
         return x
 
