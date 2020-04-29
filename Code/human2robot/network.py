@@ -92,9 +92,9 @@ class MultiLayerNet(nn.Module):
             AF = 'relu'
 
         # Define each layer here:
-        self.LayerList = nn.ModuleList(nn.Linear(n_input, n_hiddens[0]))
-        self.LayerList.append(nn.Linear(n_hiddens[i], n_hiddens[i+1]) for i in range(len(n_hiddens)-1))
-        # self.LayerList.append(nn.Linear(n_hiddens[-1], n_output))
+        self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hiddens[0])])
+        self.LayerList.extend(nn.Linear(n_hiddens[i], n_hiddens[i+1]) for i in range(len(n_hiddens)-1))
+        # self.LayerList.extend(nn.Linear(n_hiddens[-1], n_output))
         self.hidden2output = nn.Linear(n_hiddens[-1], n_output)
         self.AF = self.activations[AF]
         self.dropout = nn.Dropout(dropout_rate)
@@ -104,6 +104,9 @@ class MultiLayerNet(nn.Module):
             x = self.AF(self.dropout(layer(x)))
         x = self.hidden2output(x)
         return x
+
+
+# def 
 
 
 def numpy2tensor(x):
