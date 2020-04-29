@@ -106,7 +106,23 @@ class MultiLayerNet(nn.Module):
         return x
 
 
-# def 
+class CutAngleLayer(nn.Module):
+    def __init__(self, upper, lower):
+        """[summary]
+
+        :param nn: [description]
+        :type nn: [type]
+        :param upper: [description]
+        :type upper: [type]
+        :param lower: [description]
+        :type lower: [type]
+        """        
+        super(CutAngleLayer, self).__init__()
+        self.upper = upper
+        self.lower = lower
+
+    def forward(self, x):
+        return x
 
 
 def numpy2tensor(x):
