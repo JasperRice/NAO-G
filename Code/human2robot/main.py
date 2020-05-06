@@ -150,6 +150,16 @@ if __name__ == "__main__":
     if PLAY_TALK:
         net.eval()
         talk_play = readCSV(filename[PLAY_SET])
+        try:
+            talk_play = human_scaler.transform(talk_play)
+        except:
+            pass
+
+        try:
+            talk_play = human_pca.transform(talk_play)
+        except:
+            pass
+        
         talk_play = numpy2tensor(talk_play)
         prediction = net(talk_play)
         nao_out = prediction.detach().numpy()
