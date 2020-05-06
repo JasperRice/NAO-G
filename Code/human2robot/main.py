@@ -8,7 +8,7 @@ try:
     from execute import execGesture
 except:
     pass
-from data_processing import decompose, normalize, split
+from data_processing import decompose, normalize, split, smooth
 from io_routines import readCSV, saveNetwork
 from network import Net, numpy2tensor
 from setting import *
@@ -171,5 +171,16 @@ if __name__ == "__main__":
             nao_out = nao_scaler.inverse_transform(nao_out)
         except NameError:
             pass
+
+        kwargs = {
+            'window_length':    49,
+            'polyorder':        5,
+            'deriv':            0,
+            'delta':            1.0,
+            'axis':             -1,
+            'mode':             'interp',
+            'cval':             0.0
+        }
+        nao_out = smooth(nao_out, smoothing_method='savgol', **kwargs)
         execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
             if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())

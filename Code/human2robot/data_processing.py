@@ -1,5 +1,7 @@
 import numpy as np
 
+from functools import partial
+from scipy import signal
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -50,6 +52,22 @@ def split(X, Y):
         X_test, Y_test, test_size=0.5, random_state=2000
     )
     return [X_train, X_test, X_val, Y_train, Y_test, Y_val]
+
+
+def smooth(X, smoothing_method, **kwargs):
+    """[summary]
+
+    :param X: [description]
+    :type X: [type]
+    :param smoothing_method: [description]
+    :type smoothing_method: str
+    :param kwargs: keyworded arguments, e.g. {window_length=50, polyorder=2, deriv=0, delta=1.0, axis=-1, mode='interp', cval=0.0}
+    :type kwargs: dict
+    :return: [description]
+    :rtype: numpy.ndarray
+    """
+    if smoothing_method == 'savgol':
+        return np.array([signal.savgol_filter(x, **kwargs) for x in X.T]).T
 
 
 if __name__ == "__main__":
