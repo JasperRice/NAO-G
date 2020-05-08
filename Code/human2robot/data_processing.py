@@ -2,6 +2,7 @@ import numpy as np
 
 from functools import partial
 from scipy import signal
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler

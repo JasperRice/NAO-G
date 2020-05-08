@@ -10,6 +10,7 @@ except:
     pass
 from data_processing import decompose, normalize, split, smooth
 from io_routines import readCSV, saveNetwork
+from NAO import Interface
 from network import Net, numpy2tensor
 from setting import *
 
@@ -30,6 +31,10 @@ if __name__ == "__main__":
         talk = np.vstack(talk_list)
     human = readCSV(filename[-2])
     nao = readCSV(filename[-1]) if USE_HAND else readCSV(filename[-1])[:,2:]
+    # Test gestures
+    # execGesture(NAO_IP, NAO_PORT, nao[:,2:].tolist()) \
+            # if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao.tolist())
+    
     n = np.size(human, 0)
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
@@ -90,9 +95,14 @@ if __name__ == "__main__":
     nao_val_torch = dataset_torch[4]
     nao_test_torch = dataset_torch[5]
 
-
+    # nao_interface = Interface(NAO_IP, NAO_PORT)
     # Define Neural Network and train
-    net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), AF=AF, dropout_rate=DO_RATE)
+    net = Net(n_input=np.size(human, 1),
+                n_hidden=N_HIDDEN,
+                n_output=np.size(nao, 1),
+                AF=AF, dropout_rate=DO_RATE
+                )
+    # net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), AF=AF, dropout_rate=DO_RATE)
     optimizer = torch.optim.SGD(net.parameters(), lr=L_RATE)
     loss_func = nn.MSELoss()
 

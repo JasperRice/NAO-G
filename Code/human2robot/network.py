@@ -2,19 +2,25 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-actFuncDict = nn.ModuleDict({
-    'relu':             nn.ReLU(),
-    'relu6':            nn.ReLU6(),
-    'leaky_relu':       nn.LeakyReLU(),
-    'celu':             nn.CELU(),
-    'gelu':             nn.GELU(),
-    'selu':             nn.SELU(),
-    'softplus':         nn.Softplus(),
-    'sigmoid':          nn.Sigmoid(),
-    'log_sigmoid':      nn.LogSigmoid(),
-    'tanh':             nn.Tanh()
-})
-            
+
+def getActFunc(AF='tanh'):
+    actFuncDict = nn.ModuleDict({
+        'relu':             nn.ReLU(),
+        'relu6':            nn.ReLU6(),
+        'leaky_relu':       nn.LeakyReLU(),
+        'celu':             nn.CELU(),
+        'gelu':             nn.GELU(),
+        'selu':             nn.SELU(),
+        'softplus':         nn.Softplus(),
+        'sigmoid':          nn.Sigmoid(),
+        'log_sigmoid':      nn.LogSigmoid(),
+        'tanh':             nn.Tanh()
+    })
+    if AF not in actFuncDict:
+        print('Warning: Activation function is invalid. Using tanh instead.')
+        AF = 'tanh'
+    return actFuncDict[AF]
+
 
 class CutAngle(nn.Module):
     def __init__(self, upper, lower):
@@ -39,48 +45,9 @@ class CutAngle(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
-                # joint_upper, joint_lower, 
-                AF='tanh', dropout_rate=0):
-        """The feed forward neural network with one single hidden layer
-        
-        :param n_input: The dimension of the input layer
-        :type n_input: int
-        :param n_hidden: The dimension of the hidden layer
-        :type n_hidden: int
-        :param n_output: The dimension of the output layer
-        :type n_output: int
-        :param joint_upper: The upper bound of allowed joints of NAO (after Normalization)
-        :type joint_upper: np.ndarray
-        :param joint_lower: The lower bound if allowed joints of NAO (after Normalization)
-        :type joint_lower: np.ndarray
-        :param AF: The activation function to be used, defaults to 'tanh'
-        :type AF: str, optional
-        :param dropout_rate: The dropout rate of the hidden layer, defaults to 0
-        :type dropout_rate: int, optional
-        """
-        super(Net, self).__init__()
-
-        self.activations = actFuncDict
-        if AF not in self.activations:
-            print('Warning: Activation function is invalid. Using Relu instead.')
-            AF = 'tanh'
-
-        # Define each layer here:
-        self.input2hidden = nn.Linear(n_input, n_hidden)
-        self.hidden2output = nn.Linear(n_hidden, n_output)
-        self.AF = self.activations[AF]
-        self.dropout = nn.Dropout(dropout_rate)
-
-    def forward(self, x):
-        x = self.AF(self.dropout(self.input2hidden(x)))
-        x = self.hidden2output(x)
-        return x
-
-
-class MultiLayerNet(nn.Module):
-    def __init__(self, n_input, n_hiddens, n_output, 
-                # joint_upper, joint_lower, 
-                AF='tanh', dropout_rate=0):
+                 AF='tanh', dropout_rate=0,
+                 joint_upper=None, joint_lower=None, 
+                 **af_kwargs):
         """The feed forward neural network with multiple hidden layers
         
         :param n_input: The dimension of the input layer
@@ -89,37 +56,34 @@ class MultiLayerNet(nn.Module):
         :type n_hidden: list[int]
         :param n_output: The dimension of the output layer
         :type n_output: int
-        :param joint_upper: The upper bound of allowed joints of NAO (after Normalization)
-        :type joint_upper: np.ndarray
-        :param joint_lower: The lower bound if allowed joints of NAO (after Normalization)
-        :type joint_lower: np.ndarray
         :param AF: The activation function to be used, defaults to 'tanh'
         :type AF: str, optional
         :param dropout_rate: The dropout rate of the hidden layer, defaults to 0
         :type dropout_rate: int, optional
+        :param joint_upper: The upper bound of allowed joints of NAO (after Normalization)
+        :type joint_upper: np.ndarray
+        :param joint_lower: The lower bound if allowed joints of NAO (after Normalization)
+        :type joint_lower: np.ndarray
         """
-        super(MultiLayerNet, self).__init__()
-
-        self.activations = actFuncDict
-        if AF not in self.activations:
-            print('Warning: Activation function is invalid. Using tanh instead.')
-            AF = 'tanh'
+        super(Net, self).__init__()
 
         # Define each layer here:
-        self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hiddens[0])])
-        self.LayerList.extend(nn.Linear(n_hiddens[i], n_hiddens[i+1]) for i in range(len(n_hiddens)-1))
-        # self.LayerList.extend(nn.Linear(n_hiddens[-1], n_output))
-        self.hidden2output = nn.Linear(n_hiddens[-1], n_output)
+        self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hidden[0])])
+        self.LayerList.extend(nn.Linear(n_hidden[i], n_hidden[i+1]) for i in range(len(n_hidden)-1))
+        self.hidden2output = nn.Linear(n_hidden[-1], n_output)
         # self.cutAngle = CutAngle(joint_upper, joint_lower)
-        self.AF = self.activations[AF]
+        self.AF = getActFunc(AF)
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
         for layer in self.LayerList:
             x = self.AF(self.dropout(layer(x)))
-        # x = self.cutAngle(self.hidden2output(x))
         x = self.hidden2output(x)
+        # x = self.cutAngle(x)
         return x
+
+    def __train__(self):
+        pass
 
 
 def numpy2tensor(x):
