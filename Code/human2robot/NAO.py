@@ -1,15 +1,18 @@
 from naoqi import ALProxy
 from torch import nn
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
 from io_routines import readCSV
 from network import Net
+from setting import *
 
-class Interface:
+class NAOInterface:
     
     def __init__(self, IP, PORT, JOINT_NANE='Joints', TIME_INTERVAL=0.5, **net_kwargs):
         self.motion = ALProxy("ALMotion", IP, PORT)
+        self.joint_names = self.motion.getBodyNames(JOINT_NANE)
         limits = np.array(self.motion.getLimits(JOINT_NANE))
         self.limits = {
             'minAngle':     limits[:, 0],
@@ -17,7 +20,18 @@ class Interface:
             'maxChange':    limits[:, 2],
             'maxTorque':    limits[:, 3]
         }
-        self.net = Net(**net_kwargs)
+        try: self.net = Net(**net_kwargs)
+        except: pass
+
+    def getJointNames(self):
+        print('=====> Joint names:')
+        print(self.joint_names)
+
+    def getAngleLimits(self):
+        print('=====> Lower bound:')
+        print(self.limits['minAngle'])
+        print('=====> Upper bound:')
+        print(self.limits['maxAngle'])
 
     def loadNetwork(self, PATH):
         # self.net = xxx.load_state_dict(torch.load(PATH))
@@ -44,3 +58,13 @@ class Interface:
 
     def generatePoses(self):
         pass
+
+    def plotJoint(self, joint_name):
+        if joint_name in self.joint_names:
+            pass
+
+
+if __name__ == "__main__":
+    nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
+    nao.getJointNames()
+    nao.getAngleLimits()
