@@ -36,18 +36,21 @@ class CutAngle(nn.Module):
         self.lower = lower
 
     def forward(self, x):
-        upper_index = x > self.upper
-        lower_index = x < self.lower
-        x[upper_index] = self.upper[upper_index]
-        x[lower_index] = self.lower[lower_index]
+        if self.upper:
+            upper_index = x > self.upper
+            x[upper_index] = self.upper[upper_index]
+
+        if self.lower:
+            lower_index = x < self.lower
+            x[lower_index] = self.lower[lower_index]
+
         return x
 
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
                  AF='tanh', dropout_rate=0,
-                 joint_upper=None, joint_lower=None, 
-                 **af_kwargs):
+                 joint_upper=None, joint_lower=None):
         """The feed forward neural network with multiple hidden layers
         
         :param n_input: The dimension of the input layer
@@ -71,7 +74,7 @@ class Net(nn.Module):
         self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hidden[0])])
         self.LayerList.extend(nn.Linear(n_hidden[i], n_hidden[i+1]) for i in range(len(n_hidden)-1))
         self.hidden2output = nn.Linear(n_hidden[-1], n_output)
-        # self.cutAngle = CutAngle(joint_upper, joint_lower)
+        self.cutAngle = CutAngle(joint_upper, joint_lower)
         self.AF = getActFunc(AF)
         self.dropout = nn.Dropout(dropout_rate)
 
@@ -79,7 +82,7 @@ class Net(nn.Module):
         for layer in self.LayerList:
             x = self.AF(self.dropout(layer(x)))
         x = self.hidden2output(x)
-        # x = self.cutAngle(x)
+        x = self.cutAngle(x)
         return x
 
     def __train__(self):

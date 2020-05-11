@@ -12,8 +12,9 @@ class NAOInterface:
     
     def __init__(self, IP, PORT, JOINT_NANE='Joints', TIME_INTERVAL=0.5, **net_kwargs):
         self.motion = ALProxy("ALMotion", IP, PORT)
-        self.joint_names = self.motion.getBodyNames(JOINT_NANE)
-        limits = np.array(self.motion.getLimits(JOINT_NANE))
+        self.joint_names = self.motion.getBodyNames(JOINT_NANE) # list
+        # limits = np.array(self.motion.getLimits(JOINT_NANE)) # numpy.ndarray
+        limits = torch.tensor(self.motion.getLimits(JOINT_NANE)) # torch.tensor
         self.limits = {
             'minAngle':     limits[:, 0],
             'maxAngle':     limits[:, 1],
@@ -43,8 +44,12 @@ class NAOInterface:
         # self.cutAngles()
 
     def loadPoses(self, joint_angles):
-        self.joint_angles = joint_angles
+        # joint_angles: torch.tensor / numpy.ndarray
+        
+        self.joint_angles = joint_angles.tolist()
         self.cutAngles()
+
+        self.joint_name_angles = dict(zip(self.joint_names, self.joint_angles))
 
     def cutAngles(self):
         for joint in self.joint_angles:
@@ -59,9 +64,9 @@ class NAOInterface:
     def generatePoses(self):
         pass
 
-    def plotJoint(self, joint_name):
-        if joint_name in self.joint_names:
-            pass
+    def plotJoint(self, joint_name, *plt_args):
+        try: plt.plot(self.joint_name_angles[joint_name], *plt_args)
+        except ValueError: print('Warning: the joint name is not valid.')
 
 
 if __name__ == "__main__":
