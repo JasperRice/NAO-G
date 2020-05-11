@@ -10,7 +10,7 @@ except:
     pass
 from data_processing import decompose, normalize, split, smooth
 from io_routines import readCSV, saveNetwork
-from NAO import Interface
+# from NAO import NAOInterface
 from network import Net, numpy2tensor
 from setting import *
 
@@ -182,15 +182,18 @@ if __name__ == "__main__":
         except NameError:
             pass
 
-        kwargs = {
-            'window_length':    49,
-            'polyorder':        5,
-            'deriv':            0,
-            'delta':            1.0,
-            'axis':             -1,
-            'mode':             'interp',
-            'cval':             0.0
-        }
-        nao_out = smooth(nao_out, smoothing_method='savgol', **kwargs)
-        execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
-            if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
+    smooth_kwargs = {
+        'window_length':    7,
+        'polyorder':        3,
+        'deriv':            0,
+        'delta':            1.0,
+        'axis':             -1,
+        'mode':             'interp',
+        'cval':             0.0
+    }
+    nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
+    # execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
+    #     if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
+    to_plot = nao_out.T.tolist()
+    plt.plot(to_plot[2][:500], '-')
+    plt.show()
