@@ -1,7 +1,13 @@
 class HumanInterface:
     
-    def __init__(self):
-        pass
+    def __init__(self, jointNames, jointChannelCount, jointChannelNames):
+        self.jointNames = jointNames
+        self.jointChannelCount = jointChannelCount
+        self.jointChannelNames = jointChannelNames
+
+    @staticmethod
+    def createFromFile(filename):
+        return HumanInterface(*HumanInterface.readJointNames('Test.txt'))
 
     @staticmethod
     def readJointNames(filename):
@@ -10,7 +16,6 @@ class HumanInterface:
         jointNames = []
         jointChannelCount = {}
         jointChannelNames = {}
-        
         for index, line in enumerate(lines):
             wordList = list(line.split())
             if wordList[0] in ['ROOT', 'JOINT']:
@@ -20,12 +25,14 @@ class HumanInterface:
             elif wordList[0] == 'CHANNELS':
                 jointChannelCount[jointNames[-1]] = int(wordList[1])
                 jointChannelNames[jointNames[-1]] = wordList[2:]
-
+            elif wordList[0] == 'MOTION':
+                break
         return jointNames, jointChannelCount, jointChannelNames
 
 
-jointList, channelCount, channelNames = HumanInterface.readJointNames('Test.txt')
-jointName = jointList[1]
-print(jointName)
-print(channelCount[jointName])
-print(channelNames[jointName])
+    def fixJoint(self):
+        pass
+
+
+human = HumanInterface.createFromFile('Test.txt')
+print(human.jointNames)
