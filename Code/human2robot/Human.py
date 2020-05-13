@@ -9,6 +9,7 @@ class HumanInterface:
         self.jointChannelCount = jointChannelCount
         self.jointChannelNames = jointChannelNames
         self.jointAngles = []
+        self.jointAnglesBackup = []
 
     def __len__(self):
         return len(self.jointAngles)
@@ -17,10 +18,11 @@ class HumanInterface:
         return ' '.join(self.jointNames)
 
     def readFromBVH(self, filenameList):
+        if type(filenameList) is str:
+            filenameList = [filenameList]
         for filename in filenameList:
             file = open(filename, 'r')
             lines = file.readlines()
-
             index = 0
             for i, line in enumerate(lines):
                 wordList = line.split()
@@ -36,6 +38,8 @@ class HumanInterface:
         self.jointAnglesBackup = deepcopy(self.jointAngles)
 
     def readFromCSV(self, filenameList):
+        if type(filenameList) is str:
+            filenameList = [filenameList]
         for filename in filenameList:
             df = pd.read_csv(filename)
             self.jointAngles += df.values.tolist()
@@ -102,7 +106,7 @@ class HumanInterface:
 
     @staticmethod
     def createFromBVH(filename):
-        return HumanInterface(*HumanInterface.readJointNames('Test.txt'))
+        return HumanInterface(*HumanInterface.readJointNames(filename))
 
     @staticmethod
     def readJointNames(filename):
@@ -126,12 +130,13 @@ class HumanInterface:
 
 
 if __name__ == "__main__":
-    human = HumanInterface.createFromBVH('Test.txt')
-    human.readFromBVH([
-        '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh',
-        '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh',
-        '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
-        '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
+    human = HumanInterface.createFromBVH('/home/jasper/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
+    # human.readFromBVH([
+    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh',
+    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh',
+    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
+    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
+    human.readFromBVH('/home/jasper/Documents/NAO-G/Code/human2robot/NaturalTalking_001.bvh')
     human.fixFingers()
     human.fixShoulders()
     human.fixHips()
