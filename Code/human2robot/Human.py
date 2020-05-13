@@ -78,6 +78,19 @@ class HumanInterface:
             for angle in self.jointAngles:
                 angle[index:index+3] = deepcopy([0]*3)
 
+    def fixLegs(self):
+        legJointList = [
+            'RightUpLeg',       'RightLeg',     'RightFoot',
+            'RightForeFoot',    'RightToeBase',
+            'LeftUpLeg',        'LeftLeg',      'LeftFoot',
+            'LeftForeFoot',     'LeftToeBase'
+            ]
+        for joint in legJointList:
+            index = self.getStartAngleIndex(joint)
+            for angle in self.jointAngles:
+                angle[3:6] = deepcopy([0]*3)
+                angle[index:index+3] = deepcopy([0]*3)
+
     def fixHips(self):
         for angle in self.jointAngles:
             angle[:3] = deepcopy([0]*3)
@@ -90,9 +103,6 @@ class HumanInterface:
             angle[indexL] = -90
             for i in [indexR+1, indexR+2, indexL+1, indexL+2]:
                 angle[i] = 0
-
-    def findAngleIndexNeverChanged(self):
-        pass
 
     def head(self):
         for i in range(5):
@@ -131,13 +141,17 @@ class HumanInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/jasper/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
+    print(human)
+
     # human.readFromBVH([
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh',
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh',
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
     human.readFromBVH('/home/jasper/Documents/NAO-G/Code/human2robot/NaturalTalking_001.bvh')
+
     human.fixFingers()
-    human.fixShoulders()
     human.fixHips()
+    human.fixLegs()
+    human.fixShoulders()
     human.writeToBVH('/home/jasper/Documents/NAO-G/Code/human2robot/write2BVH_Test.bvh')
