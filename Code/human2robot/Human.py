@@ -214,11 +214,11 @@ if __name__ == "__main__":
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
 
-    human.readFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/NaturalTalking_001.bvh')
+    human.readJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/NaturalTalking_001.bvh')
     # human.fixFingers()
     # human.fixHips()
     # human.fixLegs()
     human.fixShoulders()
     # human.fixSpines()
-    human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/NaturalTalking_001_FixedShoulder.bvh')
+    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/NaturalTalking_001_FixedShoulder.bvh')
     # print(len(human))

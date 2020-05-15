@@ -183,7 +183,7 @@ if __name__ == "__main__":
             pass
 
     smooth_kwargs = {
-        'window_length':    7,
+        'window_length':    13,
         'polyorder':        3,
         'deriv':            0,
         'delta':            1.0,
@@ -195,5 +195,5 @@ if __name__ == "__main__":
     # execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
     #     if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
     to_plot = nao_out.T.tolist()
-    plt.plot(to_plot[2][:500], '-')
+    plt.plot(to_plot[-1][:100], '-')
     plt.show()
