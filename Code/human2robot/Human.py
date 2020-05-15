@@ -2,11 +2,11 @@ from copy import deepcopy
 from torch import tensor
 import pandas as pd
 
-# NAO_RShoulderPitch    = - Human_RightArm_Xrotation        + 90
-# NAO_LShoulderPitch    = - Human_LeftArm_Xrotation         + 90
-
 # NAO_RShoulderRoll     =   Human_RightArm_Zrotation        - 90
 # NAO_LShoulderRoll     =   Human_LeftArm_Zrotation         + 90
+
+# NAO_RShoulderPitch    = - Human_RightArm_Xrotation        + 90
+# NAO_LShoulderPitch    = - Human_LeftArm_Xrotation         + 90
 
 # NAO_RElbowRoll        =   Human_RightForeArm_Xrotation
 # NAO_LElbowRoll        =   Human_LeftForeArm_Xrotation
@@ -18,11 +18,12 @@ import pandas as pd
 # NAO_LWristYaw         =   Human_LeftHand_Yrotation
 
 class HumanInterface:
-    def __init__(self, jointNames, jointStartIndex, jointChannelCount, jointChannelNames, jointInfo):
+    def __init__(self, jointNames, jointStartIndex, lenJointAngles, jointChannelCount, jointChannelNames, jointInfo):
         self.jointNames = jointNames
         self.jointNamesBackup = deepcopy(self.jointNames)
         self.jointStartIndex = jointStartIndex
         self.jointStartIndexBackup = deepcopy(self.jointStartIndex)
+        self.lenJointAngles = lenJointAngles
         self.jointChannelCount = jointChannelCount
         self.jointChannelNames = jointChannelNames
         self.jointInfo = jointInfo
@@ -30,7 +31,7 @@ class HumanInterface:
         self.jointAnglesBackup = []
 
     def __len__(self):
-        return len(self.jointAngles)
+        return self.lenJointAngles
 
     def __str__(self):
         return ' '.join(self.jointNames)
@@ -61,7 +62,15 @@ class HumanInterface:
         for joint in jointAngleDict:
             pass
 
-    def readFromBVH(self, filenameList):
+    def readJointAnglesFromBVH(self, filenameList):
+        self.jointAngles = []
+        self.addJointAnglesFromBVH(filenameList)
+
+    def readJointAnglesFromCSV(self, filenameList):
+        self.jointAngles = []
+        self.addJointAnglesFromCSV(filenameList)
+
+    def addJointAnglesFromBVH(self, filenameList):
         if type(filenameList) is str:
             filenameList = [filenameList]
         for filename in filenameList:
@@ -79,7 +88,7 @@ class HumanInterface:
             file.close()
         self.jointAnglesBackup = deepcopy(self.jointAngles)
 
-    def readFromCSV(self, filenameList):
+    def addJointAnglesFromCSV(self, filenameList):
         if type(filenameList) is str:
             filenameList = [filenameList]
         for filename in filenameList:
@@ -87,10 +96,10 @@ class HumanInterface:
             self.jointAngles += df.values.tolist()
         self.jointAnglesBackup = deepcopy(self.jointAngles)
 
-    def writeToBVH(self, filename):
+    def writeJointAnglesToBVH(self, filename):
         file = open(filename, 'w')
         file.writelines(self.jointInfo)
-        file.write('Frames: %d\n' % len(self))
+        file.write('Frames: %d\n' % len(self.jointAngles))
         file.write('Frame Time: %f\n' % (1.0/60.0))
         for angle in self.jointAngles:
             file.write(' '.join(list(map(str, angle)))+'\n')
@@ -108,7 +117,7 @@ class HumanInterface:
             'LeftHandMiddle1',   'LeftHandMiddle2',     'LeftHandMiddle3',
             'LeftHandRing1',     'LeftHandRing2',       'LeftHandRing3',
             'LeftHandPinky1',    'LeftHandPinky2',      'LeftHandPinky3',
-            ]
+        ]
         for joint in fingerJointList:
             index = self.getStartAngleIndex(joint)
             for angle in self.jointAngles:
@@ -120,7 +129,7 @@ class HumanInterface:
             'RightForeFoot',    'RightToeBase',
             'LeftUpLeg',        'LeftLeg',      'LeftFoot',
             'LeftForeFoot',     'LeftToeBase'
-            ]
+        ]
         for joint in legJointList:
             index = self.getStartAngleIndex(joint)
             for angle in self.jointAngles:
@@ -184,14 +193,14 @@ class HumanInterface:
             elif wordList[0] == 'MOTION':
                 index = i + 1
                 break
-        jointStartIndex.pop()
+        lenJointAngles =  jointStartIndex.pop()
         jointInfo = lines[:index]
-        return jointNames, jointStartIndex, jointChannelCount, jointChannelNames, jointInfo
+        return jointNames, jointStartIndex, lenJointAngles, jointChannelCount, jointChannelNames, jointInfo
 
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    print(human)
+    # print(human)
 
     # human.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_extra.csv')
     # human.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human.csv')
@@ -205,11 +214,11 @@ if __name__ == "__main__":
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
     #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
 
-    # human.readFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/NaturalTalking_001.bvh')
+    human.readFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/NaturalTalking_001.bvh')
     # human.fixFingers()
     # human.fixHips()
     # human.fixLegs()
-    # human.fixShoulders()
+    human.fixShoulders()
     # human.fixSpines()
-    # human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/test_bvh.bvh')
+    human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/NaturalTalking_001_FixedShoulder.bvh')
     # print(len(human))
