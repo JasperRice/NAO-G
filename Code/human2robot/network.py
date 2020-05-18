@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+
 
 def getActFunc(AF='tanh'):
     actFuncDict = nn.ModuleDict({
@@ -49,7 +53,7 @@ class CutAngle(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
-                 AF='tanh', dropout_rate=0,
+                 AF='tanh', dropout_rate=0, learning_rate=0.1, max_epoch=1000,
                  joint_upper=None, joint_lower=None):
         """The feed forward neural network with multiple hidden layers
         
@@ -78,6 +82,10 @@ class Net(nn.Module):
         self.AF = getActFunc(AF)
         self.dropout = nn.Dropout(dropout_rate)
 
+        self.max_epoch = max_epoch
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate)
+        self.loss_func = nn.MSELoss()
+
     def forward(self, x):
         for layer in self.LayerList:
             x = self.AF(self.dropout(layer(x)))
@@ -85,8 +93,33 @@ class Net(nn.Module):
         x = self.cutAngle(x)
         return x
 
-    def __train__(self):
-        pass
+    def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.05):
+        self.train_loss_list = []
+        self.val_loss_list = []
+        self.min_val_loss = np.inf
+        for epoch in range(self.max_epoch):
+            self.train()
+            self.optimizer.zero_grad()
+            train_loss = self.loss_func(self(human_train), nao_train)
+            self.train_loss_list.append(train_loss.item())
+            train_loss.backward()
+            self.optimizer.step()
+
+            self.eval()
+            val_loss = self.loss_func(self(human_val), nao_val)
+            self.val_loss_list.append(val_loss.item())
+            if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
+                break
+            elif val_loss < self.min_val_loss:
+                self.min_val_loss = val_loss
+
+    def __plot__(self):
+        plt.figure()
+        plt.scatter(list(range(len(self.train_loss_list))), self.train_loss_list, s=1, c='blue')
+        plt.scatter(list(range(len(self.val_loss_list))), self.val_loss_list, s=1, c='orange')
+        plt.xlabel('Epoch')
+        plt.ylabel('Mean Squared Error')
+        plt.legend(['Training error', 'Validation error'])
 
 
 def numpy2tensor(x):
