@@ -124,8 +124,9 @@ class Net(nn.Module):
         #     plt.savefig()
 
     def __randomsearch__(self, max_search=50):
-        def generateHiddenLayerList():
-            pass
+        def generateHiddenLayerOptions(width_options=list(range(32,129,32))):
+            for length in range(1, len(width_options)+1):
+                pass
 
         min_val_loss_list = []
 
@@ -133,6 +134,7 @@ class Net(nn.Module):
             'softplus', 'sigmoid', 'log_sigmoid', 'tanh']
         dr_options = [0.01 * i for i in range(100)]
         lr_options = [0.005 * (i + 1) for i in range(200)]
+        hidden_layer_options = []
         for i in range(max_search):
             pass
         

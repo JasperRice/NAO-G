@@ -2,6 +2,9 @@ from copy import deepcopy
 from torch import tensor
 import pandas as pd
 
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 # NAO_RShoulderRoll     =   Human_RightArm_Zrotation        - 90
 # NAO_LShoulderRoll     =   Human_LeftArm_Zrotation         + 90
 
@@ -35,6 +38,19 @@ class HumanInterface:
 
     def __str__(self):
         return ' '.join(self.jointNames)
+
+    def __iter__(self):
+        for joint in self.jointAngles:
+            yield joint
+
+    def __getitem__(self, i):
+        return self.jointAngles[i]
+
+    def normalize(self, dataset=None):
+        if dataset == None:
+            self.human_scaler = StandardScaler.fit(self.jointAngles)
+        else:
+            self.human_scaler = StandardScaler.fit(dataset)
 
     def printAngleLabels(self):
         angleLabels = []

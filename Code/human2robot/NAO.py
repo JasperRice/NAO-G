@@ -14,7 +14,7 @@ from setting import *
 
 class NAOInterface:
     
-    def __init__(self, IP, PORT, JOINT_NANE='Joints', TIME_INTERVAL=0.5, **net_kwargs):
+    def __init__(self, IP, PORT, JOINT_NANE='Joints', TIME_INTERVAL=0.5):
         self.jointSetName = JOINT_NANE
         self.motion = ALProxy("ALMotion", IP, PORT)
         self.joint_names = self.motion.getBodyNames(self.jointSetName) # list
@@ -28,11 +28,16 @@ class NAOInterface:
         }
         self.jointAngles = []
         self.jointAnglesBackup = []
-        try: self.net = Net(**net_kwargs)
-        except: pass
 
     def __str__(self):
         return ' '.join(self.joint_names)
+    
+    def __iter__(self):
+        for joint in self.jointAngles:
+            yield joint
+
+    def __getitem__(self, i):
+        return self.jointAngles[i]
 
     def readFromCSV(self, filenameList):
         self.jointAngles = []
@@ -77,6 +82,19 @@ class NAOInterface:
     def addCurrentJointAngleToList(self):
         self.jointAngles.append(self.getCurrentJointAngle())
 
+    def startRecordJointAngles(self):
+        self.jointAngles = []
+        CONTINUE = True
+        while CONTINUE:
+            nao.addCurrentJointAngleToList()
+            if_continue = raw_input("If continue to record current joint angle (y/n): ")
+            if if_continue in ['y', 'Y', 'yes']:
+                CONTINUE = True
+            elif if_continue in ['n', 'N', 'no']:
+                CONTINUE = False
+            else:
+                if_continue = raw_input("Input 'y' or 'n': ")
+
     def transformJointAnglesListToHuman(self, human):
         for jointAngle in self.jointAngles:
             humanJointAngle = self.transformJointAnglesToHuman(human, jointAngle)
@@ -93,7 +111,7 @@ class NAOInterface:
         ]
         humanJointList = [
             ['RightArm', 0], ['LeftArm', 0], ['RightArm', 1], ['LeftArm', 1],
-            ['RightForeArm', 1], ['LeftForeArm', 1], ['RightForeArm', 2], ['LeftForeArm', 2],
+            ['RightArm', 2], ['LeftArm', 2], ['RightForeArm', 2], ['LeftForeArm', 2],
             ['RightHand', 2], ['LeftHand', 2]
         ]
         for naoJoint, humanJoint in zip(naoJointList, humanJointList):
