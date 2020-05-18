@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+import random
 
 
 def getActFunc(AF='tanh'):
@@ -113,13 +113,29 @@ class Net(nn.Module):
             elif val_loss < self.min_val_loss:
                 self.min_val_loss = val_loss
 
-    def __plot__(self):
+    def __plot__(self, save=False):
         plt.figure()
         plt.scatter(list(range(len(self.train_loss_list))), self.train_loss_list, s=1, c='blue')
         plt.scatter(list(range(len(self.val_loss_list))), self.val_loss_list, s=1, c='orange')
         plt.xlabel('Epoch')
         plt.ylabel('Mean Squared Error')
         plt.legend(['Training error', 'Validation error'])
+        # if save:
+        #     plt.savefig()
+
+    def __randomsearch__(self, max_search=50):
+        def generateHiddenLayerList():
+            pass
+
+        min_val_loss_list = []
+
+        af_options = ['relu', 'relu6', 'leaky_relu', 'celu', 'gelu', 'selu',
+            'softplus', 'sigmoid', 'log_sigmoid', 'tanh']
+        dr_options = [0.01 * i for i in range(100)]
+        lr_options = [0.005 * (i + 1) for i in range(200)]
+        for i in range(max_search):
+            pass
+        
 
 
 def numpy2tensor(x):
