@@ -111,10 +111,11 @@ class Net(nn.Module):
             self.eval()
             val_loss = self.loss_func(self(human_val), nao_val)
             self.val_loss_list.append(val_loss.item())
-            if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
-                break
-            elif val_loss < self.min_val_loss:
-                self.min_val_loss = val_loss
+            if epoch > 25:
+                if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
+                    break
+                elif val_loss < self.min_val_loss:
+                    self.min_val_loss = val_loss
 
     def __plot__(self, save=False):
         plt.figure()
@@ -128,7 +129,7 @@ class Net(nn.Module):
         #     plt.savefig()
 
     @staticmethod
-    def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=100):
+    def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=10):
         """[summary]
 
         :param x_train: [description]
@@ -168,8 +169,8 @@ class Net(nn.Module):
 
         af_options = ['relu', 'relu6', 'leaky_relu', 'celu', 'gelu', 'selu',
             'softplus', 'sigmoid', 'log_sigmoid', 'tanh']
-        dr_options = [0.01 * i for i in range(100)]
-        lr_options = [0.005 * (i + 1) for i in range(200)]
+        dr_options = [0.01 * i for i in range(50)]
+        lr_options = [0.005 * (i + 1) for i in range(20)]
         hl_options = generateHiddenLayerOptions()
         options = [af_options, dr_options, lr_options, hl_options]
         keyword = ['AF', 'dropout_rate', 'learning_rate', 'n_hidden']
@@ -183,6 +184,7 @@ class Net(nn.Module):
             if net.min_val_loss < best_val_error:
                 best_option = current_option
 
+        print(best_option)
         return best_option
 
 
