@@ -1,8 +1,8 @@
 NAO_IP      = '127.0.0.1'   # The IP address of the NAO robot, could be virtual or physical robot
-NAO_PORT    = 35769         # The port number of the NAO robot
+NAO_PORT    = 36399         # The port number of the NAO robot
 
-# NAO_IP      = '130.237.67.140'
-# NAO_PORT    = 9559
+P_NAO_IP      = '130.237.67.140'
+P_NAO_PORT    = 9559
 
 VISUALIZE   = False         # If visualize the training result on NAO based on the IP and Port defined
 ON_SET      = 1             # Visualize on [0: train, 1: validation or 2: test]
