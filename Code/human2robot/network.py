@@ -129,8 +129,8 @@ class Net(nn.Module):
         #     plt.savefig()
 
     @staticmethod
-    def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=10):
-        """[summary]
+    def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=100):
+        """Create a new Net based the hyper-parameters obtained from random search
 
         :param x_train: [description]
         :type x_train: torch.Tensor
