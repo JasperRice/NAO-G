@@ -4,7 +4,9 @@ import torch.nn.functional as F
 
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+
+from itertools import permutations
+from random import choice
 
 
 def getActFunc(AF='tanh'):
@@ -98,6 +100,7 @@ class Net(nn.Module):
         self.val_loss_list = []
         self.min_val_loss = np.inf
         for epoch in range(self.max_epoch):
+            print('=====> Epoch: {}'.format(epoch))
             self.train()
             self.optimizer.zero_grad()
             train_loss = self.loss_func(self(human_train), nao_train)
@@ -120,24 +123,67 @@ class Net(nn.Module):
         plt.xlabel('Epoch')
         plt.ylabel('Mean Squared Error')
         plt.legend(['Training error', 'Validation error'])
+        plt.show()
         # if save:
         #     plt.savefig()
 
-    def __randomsearch__(self, max_search=50):
-        def generateHiddenLayerOptions(width_options=list(range(32,129,32))):
-            for length in range(1, len(width_options)+1):
-                pass
+    @staticmethod
+    def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=100):
+        """[summary]
 
-        min_val_loss_list = []
+        :param x_train: [description]
+        :type x_train: torch.Tensor
+        :param x_val: [description]
+        :type x_val: torch.Tensor
+        :param y_train: [description]
+        :type y_train: torch.Tensor
+        :param y_val: [description]
+        :type y_val: torch.Tensor
+        :param max_search: [description], defaults to 100
+        :type max_search: int, optional
+        """
+        _kwargs = Net.__randomsearch__(x_train, x_val, y_train, y_val, max_search)
+        return Net(n_input=x_train.size(1), n_output=y_train.size(1), **_kwargs)
+
+    @staticmethod
+    def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100):
+        """[summary]
+
+        :param x_train: [description]
+        :type x_train: torch.Tensor
+        :param x_val: [description]
+        :type x_val: torch.Tensor
+        :param y_train: [description]
+        :type y_train: torch.Tensor
+        :param y_val: [description]
+        :type y_val: torch.Tensor
+        :param max_search: [description], defaults to 100
+        :type max_search: int, optional
+        """
+        def generateHiddenLayerOptions(width_options=[32 * i for i in range(1,5)]):
+            options = []
+            for length in range(1, len(width_options)+1):
+                options.extend(permutations(width_options, length))
+            return list(map(list, options))
 
         af_options = ['relu', 'relu6', 'leaky_relu', 'celu', 'gelu', 'selu',
             'softplus', 'sigmoid', 'log_sigmoid', 'tanh']
         dr_options = [0.01 * i for i in range(100)]
         lr_options = [0.005 * (i + 1) for i in range(200)]
-        hidden_layer_options = []
-        for i in range(max_search):
-            pass
+        hl_options = generateHiddenLayerOptions()
+        options = [af_options, dr_options, lr_options, hl_options]
+        keyword = ['AF', 'dropout_rate', 'learning_rate', 'n_hidden']
         
+        best_option = None
+        best_val_error = np.inf
+        for i in range(max_search):
+            current_option = dict(zip(keyword, list(map(choice, options))))
+            net = Net(n_input=x_train.size(1), n_output=y_train.size(1), **current_option)
+            net.__train__(x_train, x_val, y_train, y_val)
+            if net.min_val_loss < best_val_error:
+                best_option = current_option
+
+        return best_option
 
 
 def numpy2tensor(x):
