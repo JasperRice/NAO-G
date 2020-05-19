@@ -1,24 +1,11 @@
 from copy import deepcopy
 from torch import tensor
-import pandas as pd
-
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-# NAO_RShoulderRoll     =   Human_RightArm_Zrotation        - 90
-# NAO_LShoulderRoll     =   Human_LeftArm_Zrotation         + 90
+import pandas as pd
+import numpy as np
 
-# NAO_RShoulderPitch    = - Human_RightArm_Xrotation        + 90
-# NAO_LShoulderPitch    = - Human_LeftArm_Xrotation         + 90
-
-# NAO_RElbowRoll        =   Human_RightForeArm_Xrotation
-# NAO_LElbowRoll        =   Human_LeftForeArm_Xrotation
-
-# NAO_RElbowYaw         =   Human_RightForeArm_Yrotation    + 90
-# NAO_LElbowYaw         =   Human_LeftForeArm_Yrotation     - 90
-
-# NAO_RWristYaw         =   Human_RightHand_Yrotation
-# NAO_LWristYaw         =   Human_LeftHand_Yrotation
 
 class HumanInterface:
     def __init__(self, jointNames, jointStartIndex, lenJointAngles, jointChannelCount, jointChannelNames, jointInfo):
@@ -48,7 +35,7 @@ class HumanInterface:
 
     def normalize(self, dataset=None):
         if dataset == None:
-            self.human_scaler = StandardScaler.fit(self.jointAngles)
+            self.human_scaler = StandardScaler.fit(np.array(self.jointAngles))
         else:
             self.human_scaler = StandardScaler.fit(dataset)
 

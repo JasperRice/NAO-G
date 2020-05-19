@@ -1,6 +1,7 @@
-from .Human import HumanInterface
-from .NAO import NAOInterface
-from .network import Net
+from Human import HumanInterface
+from NAO import NAOInterface
+from network import Net
+
 
 class Human2NAOInterface:
 

@@ -16,7 +16,7 @@ DECOMPOSE   = False         # If use PCA to decompose dataset
 
 MAX_EPOCH   = 1000          # The maximum training epoch
 AF          = 'tanh'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
-N_HIDDEN    = [128, 64]         # The number of nodes in the hidden layers
+N_HIDDEN    = [128, 64]     # The number of nodes in the hidden layers
 L_RATE      = 0.1           # The learning rate of the network
 DO_RATE     = 0.25          # Dropout rate of the hidden layer
 STOP_EARLY  = True          # If stop earlier based on the validation error

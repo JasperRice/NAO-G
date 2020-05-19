@@ -148,7 +148,7 @@ class Net(nn.Module):
 
     @staticmethod
     def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100):
-        """[summary]
+        """Random search to find suitable hyper-parameter for the Network
 
         :param x_train: [description]
         :type x_train: torch.Tensor

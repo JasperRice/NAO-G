@@ -5,14 +5,14 @@ from sklearn.preprocessing import StandardScaler
 import sys
 sys.path.append('human2robot/')
 try:
-    from .execute import execGesture
+    from execute import execGesture
 except:
     pass
-from .data_processing import decompose, normalize, split, smooth
-from .io_routines import readCSV, saveNetwork
+from data_processing import decompose, normalize, split, smooth
+from io_routines import readCSV, saveNetwork
 # from NAO import NAOInterface
-from .network import Net, numpy2tensor
-from .setting import *
+from network import Net, numpy2tensor
+from setting import *
 
 import matplotlib.pyplot as plt
 import numpy as np

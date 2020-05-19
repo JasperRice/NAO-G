@@ -1,7 +1,10 @@
 from copy import deepcopy
 from math import degrees
 from naoqi import ALProxy
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from torch import nn
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -111,8 +114,8 @@ class NAOInterface:
         ]
         humanJointList = [
             ['RightArm', 0], ['LeftArm', 0], ['RightArm', 1], ['LeftArm', 1],
-            ['RightArm', 2], ['LeftArm', 2], ['RightForeArm', 2], ['LeftForeArm', 2],
-            ['RightHand', 2], ['LeftHand', 2]
+            ['RightForeArm', 1], ['LeftForeArm', 1], ['RightArm', 2], ['LeftArm', 2],
+            ['RightForeArm', 2], ['LeftForeArm', 2]
         ]
         for naoJoint, humanJoint in zip(naoJointList, humanJointList):
             naoIndex = self.getJointIndex(naoJoint)
@@ -123,7 +126,7 @@ class NAOInterface:
                 humanJointAngle[humanIndex] = degrees(jointAngle[naoIndex]) - 90
             elif naoJoint in ['RShoulderPitch', 'LShoulderPitch']:
                 humanJointAngle[humanIndex] = - degrees(jointAngle[naoIndex]) + 90
-            elif naoJoint in ['RElbowRoll', 'RWristYaw', 'LWristYaw']:
+            elif naoJoint in ['RWristYaw', 'LWristYaw', 'RElbowRoll']:
                 humanJointAngle[humanIndex] = degrees(jointAngle[naoIndex])
             elif naoJoint in ['LElbowRoll']:
                 humanJointAngle[humanIndex] = - degrees(jointAngle[naoIndex])
@@ -185,7 +188,7 @@ if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
     nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     print(nao)
-    # nao.stand()
+    nao.stand()
 
     # CONTINUE = True
     # while CONTINUE:
@@ -201,7 +204,7 @@ if __name__ == "__main__":
     # nao.transformJointAnglesListToHuman(human)
     # human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
 
-    # nao.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv')
-    # nao.transformJointAnglesListToHuman(human)
-    # human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
-    # nao.executePosesOneByOne()
+    nao.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv')
+    nao.transformJointAnglesListToHuman(human)
+    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
+    nao.executePosesOneByOne()
