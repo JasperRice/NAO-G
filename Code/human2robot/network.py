@@ -143,8 +143,8 @@ class Net(nn.Module):
         :param max_search: [description], defaults to 100
         :type max_search: int, optional
         """
-        _kwargs = Net.__randomsearch__(x_train, x_val, y_train, y_val, max_search)
-        return Net(n_input=x_train.size(1), n_output=y_train.size(1), **_kwargs)
+        kwargs = Net.__randomsearch__(x_train, x_val, y_train, y_val, max_search)
+        return Net(n_input=x_train.size(1), n_output=y_train.size(1), **kwargs)
 
     @staticmethod
     def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100):

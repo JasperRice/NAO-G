@@ -1,7 +1,8 @@
 from copy import deepcopy
-from torch import tensor
+from math import radians
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from torch import tensor
 
 import pandas as pd
 import numpy as np
@@ -33,11 +34,17 @@ class HumanInterface:
     def __getitem__(self, i):
         return self.jointAngles[i]
 
-    def normalize(self, dataset=None):
+    def normalize_fit(self, dataset=None):
         if dataset == None:
             self.human_scaler = StandardScaler.fit(np.array(self.jointAngles))
         else:
             self.human_scaler = StandardScaler.fit(dataset)
+
+    def normalize_transform(self):
+        self.jointAngles = self.human_scaler.transform(self.jointAngles)
+
+    def normalize_inverse(self):
+        self.jointAngles = self.human_scaler.inverse_transform(self.jointAngles)
 
     def printAngleLabels(self):
         angleLabels = []
@@ -169,6 +176,33 @@ class HumanInterface:
             print('=====> Frame %d:' % (len(self)+i))
             print(' '.join(list(map(str, self.jointAngles[i]))))
 
+    def transformJointAnglesToNAO(self, nao, jointAngle):
+        naoJointAngle = [0] * len(nao)
+        naoJointList = [
+            'RShoulderRoll', 'LShoulderRoll', 'RShoulderPitch', 'LShoulderPitch',
+            'RElbowRoll', 'LElbowRoll', 'RElbowYaw', 'LElbowYaw',
+            'RWristYaw', 'LWristYaw'
+        ]
+        humanJointList = [
+            ['RightArm', 0], ['LeftArm', 0], ['RightArm', 1], ['LeftArm', 1],
+            ['RightForeArm', 1], ['LeftForeArm', 1], ['RightArm', 2], ['LeftArm', 2],
+            ['RightForeArm', 2], ['LeftForeArm', 2]
+        ]
+        for naoJoint, humanJoint in zip(naoJointList, humanJointList):
+            naoIndex = nao.getJointIndex(naoJoint)
+            humanIndex = self.getStartAngleIndex(humanJoint[0]) + humanJoint[1]
+            if naoJoint in ['RShoulderRoll', 'LElbowYaw']:
+                naoJointAngle[naoIndex] = radians(jointAngle[humanIndex] - 90)
+            elif naoJoint in ['LShoulderRoll', 'RElbowYaw']:
+                naoJointAngle[naoIndex] = radians(jointAngle[humanIndex] + 90)
+            elif naoJoint in ['RShoulderPitch', 'LShoulderPitch']:
+                naoJointAngle[naoIndex] = radians(- jointAngle[humanIndex] + 90)
+            elif naoJoint in ['RWristYaw', 'LWristYaw', 'RElbowRoll']:
+                naoJointAngle[naoIndex] = radians(jointAngle[humanIndex])
+            elif naoJoint in ['LElbowRoll']:
+                naoJointAngle[naoIndex] = radians(- jointAngle[humanIndex])
+        return naoJointAngle
+
     @staticmethod
     def createFromBVH(filename):
         return HumanInterface(*HumanInterface.readJointNames(filename))
@@ -203,25 +237,10 @@ class HumanInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    # print(human)
+    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh')
+    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh')
+    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh')
+    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh')
 
-    # human.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_extra.csv')
-    # human.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human.csv')
-    # human.fixHips()
-    # human.fixShoulders()
-    # human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/test_bvh.bvh')
-    
-    # human.readFromBVH([
-    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh',
-    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh',
-    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh',
-    #     '/home/jasper/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh'])
-
-    human.readJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/NaturalTalking_001.bvh')
-    # human.fixFingers()
-    # human.fixHips()
-    # human.fixLegs()
     human.fixShoulders()
-    # human.fixSpines()
-    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/NaturalTalking_001_FixedShoulder.bvh')
-    # print(len(human))
+    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_Key.bvh')

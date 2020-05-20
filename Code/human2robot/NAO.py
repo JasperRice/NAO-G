@@ -21,8 +21,8 @@ class NAOInterface:
         self.jointSetName = JOINT_NANE
         self.motion = ALProxy("ALMotion", IP, PORT)
         self.joint_names = self.motion.getBodyNames(self.jointSetName) # list
-        # limits = np.array(self.motion.getLimits(self.jointSetName)) # numpy.ndarray
-        limits = torch.tensor(self.motion.getLimits(self.jointSetName)) # torch.tensor
+        limits = np.array(self.motion.getLimits(self.jointSetName)) # numpy.ndarray
+        # limits = torch.tensor(self.motion.getLimits(self.jointSetName)) # torch.tensor
         self.limits = {
             'minAngle':     limits[:, 0],
             'maxAngle':     limits[:, 1],
@@ -31,6 +31,9 @@ class NAOInterface:
         }
         self.jointAngles = []
         self.jointAnglesBackup = []
+
+    def __len__(self):
+        return len(self.joint_names)
 
     def __str__(self):
         return ' '.join(self.joint_names)
@@ -157,17 +160,26 @@ class NAOInterface:
             joint[lower_index] = self.limits['minAngle'][lower_index]
             joint[upper_index] = self.limits['maxAngle'][upper_index]
 
-    def executePoses(self):
-        pass
+    def cutOneAngle(self, joint):
+        joint = np.array(joint)
+        lower_index = joint < self.limits['minAngle']
+        upper_index = joint > self.limits['maxAngle']
+        joint[lower_index] = self.limits['minAngle'][lower_index]
+        joint[upper_index] = self.limits['maxAngle'][upper_index]
+        return joint.tolist()
+
+    def executePose(self, jointAngle):
+        T = [0.5] * len(jointAngle)
+        self.motion.angleInterpolation("Joints", jointAngle, T, True)
 
     def executePosesOneByOne(self, index=None):
         T = [0.5] * len(self.joint_names)
         if index:
-            print("=====> Pose index: %d." % (index))
-            self.motion.angleInterpolation(self.jointSetName, self.joint_names[index], T, True)
+            print("=====> Pose index: %d." % (index+1))
+            self.motion.angleInterpolation(self.jointSetName, self.jointAngles[index], T, True)
         else:
             for index, angle in enumerate(self.jointAngles):
-                print("=====> Pose index: %d." % (index))
+                print("=====> Pose index: %d." % (index+1))
                 self.motion.angleInterpolation(self.jointSetName, angle, T, True)
                 raw_input("Press ENTER to continue ...")
 
@@ -186,25 +198,37 @@ class NAOInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
-    print(nao)
+    human.readJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_Key.bvh')
+    nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     nao.stand()
+    nao.getAngleLimits()
+    print(nao)
 
-    # CONTINUE = True
-    # while CONTINUE:
-    #     nao.addCurrentJointAngleToList()
-    #     if_continue = raw_input("If continue to record current joint angle (y/n):")
-    #     if if_continue in ['y', 'Y', 'yes']:
-    #         CONTINUE = True
-    #     elif if_continue in ['n', 'N', 'no']:
-    #         CONTINUE = False
-    #     else:
-    #         if_continue = raw_input("Input 'y' or 'n': ", end='')
-    # nao.writeToCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv', mode='a')
+
+    RECORD = False
+    COUNT = 1
+    while COUNT <= len(human.jointAngles):
+        naoJoint = human.transformJointAnglesToNAO(nao, human[COUNT-1])
+        print(naoJoint)
+        naoJoint = nao.cutOneAngle(naoJoint)
+        print(naoJoint)
+        nao.executePose(naoJoint)
+
+        if_record = raw_input("If record current joint angle (y/n):")
+        if if_record in ['y', 'Y', 'yes']:
+            nao.addCurrentJointAngleToList()
+            print("=====> Count: {} key poses collected".format(COUNT))
+            COUNT += 1
+        elif if_record in ['n', 'N', 'no']:
+            continue
+        else:
+            if_record = raw_input("Input 'y' or 'n': ", end='')
+    if RECORD:
+        nao.writeToCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_new.csv', mode='w')
+        # nao.transformJointAnglesListToHuman(human)
+        # human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human.bvh')
+
+    # nao.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv')
     # nao.transformJointAnglesListToHuman(human)
-    # human.writeToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
-
-    nao.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv')
-    nao.transformJointAnglesListToHuman(human)
-    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
-    nao.executePosesOneByOne()
+    # human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
+    # nao.executePosesOneByOne()
