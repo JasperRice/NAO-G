@@ -15,7 +15,8 @@ except: pass
 from data_processing import decompose, normalize, split, smooth
 from Human import HumanInterface
 from io_routines import readCSV, saveNetwork
-from NAO import NAOInterface
+try: from NAO import NAOInterface
+except: pass
 from network import Net, numpy2tensor
 from setting import *
 
@@ -24,26 +25,42 @@ if __name__ == "__main__":
     # Reproducibility by setting a seed
     torch.manual_seed(2020)
 
-    human_interface = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
+    human_interface = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
     try: nao_interface = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
-    except: nao_interface = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
+    except:
+        try: nao_interface = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
+        except: pass
 
     # Read dataset
-    talk_list = map(readCSV, talkfile)
-    talk = np.vstack(talk_list)
-    human = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human.csv')
-    human_new = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_new.csv')
-    human_new_expand = human_new + np.ra
-    human_right_hand = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_right_hand.csv')
-
-    human_new = np.vstack([human_new, human_new])
+    # talk_list = map(readCSV, talkfile)
+    # talk = np.vstack(talk_list)
+    human = readCSV('dataset/Human.csv')
+    human_new = readCSV('dataset/Human_new.csv')
+    human_new_argu = human_new + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_new))
+    human_right_hand = readCSV('dataset/Human_right_hand.csv')
+    human_right_hand_argu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
+    human = np.vstack([
+        human,
+        human_new,
+        human_new_argu,
+        human_right_hand,
+        human_right_hand_argu,
+    ])
+    exit()
     
     nao = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO.csv')
     nao_new = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_new.csv')
+    nao_new_argu = nao_new + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_new))
     nao_right_hand = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv')
-    nao_new = np.vstack([nao_new, nao_new])
-    human = np.vstack([human, human_new])
-    nao = np.vstack([nao, nao_new])
+    nao_right_hand_argu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
+    nao = np.vstack([
+        nao,
+        nao_new,
+        nao_new_argu,
+        nao_right_hand,
+        nao_right_hand_argu,
+    ])
+
     n = np.size(human, 0)
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
