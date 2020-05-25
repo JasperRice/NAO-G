@@ -2,8 +2,14 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+
 import sys
 sys.path.append('human2robot/')
+
 try: from execute import execGesture
 except: pass
 from data_processing import decompose, normalize, split, smooth
@@ -13,25 +19,31 @@ from NAO import NAOInterface
 from network import Net, numpy2tensor
 from setting import *
 
-import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import torch.nn as nn
-
 
 if __name__ == "__main__":
     # Reproducibility by setting a seed
     torch.manual_seed(2020)
 
-    nao = NAOInterface
+    human_interface = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
+    try: nao_interface = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
+    except: nao_interface = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
 
     # Read dataset
-    if USE_TALK:
-        talk_list = map(readCSV, filename[:-2])
-        talk = np.vstack(talk_list)
-    human = readCSV(filename[-2])
-    nao = readCSV(filename[-1]) if USE_HAND else readCSV(filename[-1])[:,2:]
+    talk_list = map(readCSV, talkfile)
+    talk = np.vstack(talk_list)
+    human = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human.csv')
+    human_new = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_new.csv')
+    human_new_expand = human_new + np.ra
+    human_right_hand = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/Human_right_hand.csv')
+
+    human_new = np.vstack([human_new, human_new])
     
+    nao = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO.csv')
+    nao_new = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_new.csv')
+    nao_right_hand = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv')
+    nao_new = np.vstack([nao_new, nao_new])
+    human = np.vstack([human, human_new])
+    nao = np.vstack([nao, nao_new])
     n = np.size(human, 0)
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
@@ -44,13 +56,13 @@ if __name__ == "__main__":
         if USE_TALK:
             talk, _ = normalize(talk)
 
-    if DECOMPOSE:
-        if USE_TALK:
-            _, human_pca = decompose(talk)
-            human = human_pca.transform(human)
-        else:
-            human, human_pca = decompose(human)
+    if USE_TALK:
+        _, human_pca = decompose(talk)
+        human = human_pca.transform(human)
+    else:
+        human, human_pca = decompose(human)
 
+    if DECOMPOSE:
         nao, nao_pca = decompose(nao)
 
 
@@ -92,19 +104,19 @@ if __name__ == "__main__":
     nao_val_torch = dataset_torch[4]
     nao_test_torch = dataset_torch[5]
 
-    # nao_interface = Interface(NAO_IP, NAO_PORT)
+    
     # Define Neural Network and train
+
     # net = Net(n_input=np.size(human, 1),
     #             n_hidden=N_HIDDEN,
     #             n_output=np.size(nao, 1),
     #             AF=AF, dropout_rate=DO_RATE
     #             )
-
+    Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='/home/nao/Documents/NAO-G/Code/human2robot/dataset/Hyper-parameters.csv')
+    exit()
     net = Net.createFromRandomSearch(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
     net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
     net.__plot__()
-
-    # plt.savefig(AF+'_LR='+str(L_RATE)+'_Hidden='+str(N_HIDDEN)+'_Normalize='+str(NORMALIZE)+'_Decompose='+str(DECOMPOSE)+'_Dropout='+str(DO_RATE)+'.png')
 
 
     # Visualize result on NAO
@@ -128,27 +140,22 @@ if __name__ == "__main__":
     if PLAY_TALK:
         net.eval()
         talk_play = readCSV(filename[PLAY_SET])
-        try:
-            talk_play = human_scaler.transform(talk_play)
-        except:
-            pass
 
-        try:
-            talk_play = human_pca.transform(talk_play)
-        except:
-            pass
+        try: talk_play = human_scaler.transform(talk_play)
+        except: pass
+
+        try: talk_play = human_pca.transform(talk_play)
+        except: pass
         
         talk_play = numpy2tensor(talk_play)
         prediction = net(talk_play)
         nao_out = prediction.detach().numpy()
-        try:
-            nao_out = nao_pca.inverse_transform(nao_out)
-        except NameError:
-            pass
-        try:
-            nao_out = nao_scaler.inverse_transform(nao_out)
-        except NameError:
-            pass
+
+        try: nao_out = nao_pca.inverse_transform(nao_out)
+        except NameError: pass
+
+        try: nao_out = nao_scaler.inverse_transform(nao_out)
+        except NameError: pass
 
     smooth_kwargs = {
         'window_length':    13,

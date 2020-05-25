@@ -45,7 +45,7 @@ class NAOInterface:
     def __getitem__(self, i):
         return self.jointAngles[i]
 
-    def readFromCSV(self, filenameList):
+    def readJointAnglesFromCSV(self, filenameList):
         self.jointAngles = []
         if type(filenameList) is str:
             filenameList = [filenameList]
@@ -54,7 +54,7 @@ class NAOInterface:
             self.jointAngles += df.values.tolist()
         self.jointAnglesBackup = deepcopy(self.jointAngles)
 
-    def writeToCSV(self, filename, mode='a'):
+    def writeJointAnglesToCSV(self, filename, mode='a'):
         file = open(filename, mode=mode)
         if mode == 'w':
             file.write(', '.join(self.joint_names)+'\n') 
@@ -199,14 +199,24 @@ class NAOInterface:
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
     human.readJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_Key.bvh')
-    nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
-    nao.stand()
+    human.readJointAnglesFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.csv')
+    try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
+    except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     nao.getAngleLimits()
-    print(nao)
 
+    try:
+        file = open('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv')
+        lines = file.readlines()
+        file.close()
+        COUNT = len(lines)
+    except: COUNT = 1
 
-    RECORD = False
-    COUNT = 1
+    if COUNT == 1:
+        mode = 'w'
+    else:
+        mode = 'a'
+
+    print("=====> Start to record key poses {}".format(COUNT))
     while COUNT <= len(human.jointAngles):
         naoJoint = human.transformJointAnglesToNAO(nao, human[COUNT-1])
         print(naoJoint)
@@ -214,21 +224,18 @@ if __name__ == "__main__":
         print(naoJoint)
         nao.executePose(naoJoint)
 
-        if_record = raw_input("If record current joint angle (y/n):")
+        if_record = raw_input("If record current joint angle (y/n/s):")
         if if_record in ['y', 'Y', 'yes']:
             nao.addCurrentJointAngleToList()
             print("=====> Count: {} key poses collected".format(COUNT))
             COUNT += 1
+            print("=====> Start to record key poses {}".format(COUNT))
+
         elif if_record in ['n', 'N', 'no']:
             continue
+        elif if_record in ['s', 'S', 'stop']:
+            break
         else:
             if_record = raw_input("Input 'y' or 'n': ", end='')
-    if RECORD:
-        nao.writeToCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_new.csv', mode='w')
-        # nao.transformJointAnglesListToHuman(human)
-        # human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human.bvh')
 
-    # nao.readFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_extra.csv')
-    # nao.transformJointAnglesListToHuman(human)
-    # human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/Human_extra.bvh')
-    # nao.executePosesOneByOne()
+    nao.writeJointAnglesToCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv', mode=mode)

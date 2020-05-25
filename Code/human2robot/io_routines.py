@@ -16,9 +16,6 @@ def readCSV(filename):
     array = df.to_numpy()
     return array
 
-def bvh2CSV(bvh_filename, csv_filename):
-    bvh_f = open()
-
 
 def saveNetwork(filename):
     # torch.save(filename)

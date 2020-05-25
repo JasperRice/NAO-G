@@ -115,6 +115,11 @@ class HumanInterface:
             file.write(' '.join(list(map(str, angle)))+'\n')
         file.close()
 
+    def writeJointAnglesToCSV(self, filename):
+        file = open(filename, 'w')
+        file.write(', '.join(self.jointNames)+'\n')
+        
+
     def fixFingers(self):
         fingerJointList = [
             'RightHandThumb1',   'RightHandThumb2',     'RightHandThumb3',
@@ -197,8 +202,10 @@ class HumanInterface:
                 naoJointAngle[naoIndex] = radians(jointAngle[humanIndex] + 90)
             elif naoJoint in ['RShoulderPitch', 'LShoulderPitch']:
                 naoJointAngle[naoIndex] = radians(- jointAngle[humanIndex] + 90)
-            elif naoJoint in ['RWristYaw', 'LWristYaw', 'RElbowRoll']:
+            elif naoJoint in ['RWristYaw', 'RElbowRoll']:
                 naoJointAngle[naoIndex] = radians(jointAngle[humanIndex])
+            elif naoJoint in ['LWristYaw']:
+                naoJointAngle[naoIndex] = radians(jointAngle[humanIndex] - 180)
             elif naoJoint in ['LElbowRoll']:
                 naoJointAngle[naoIndex] = radians(- jointAngle[humanIndex])
         return naoJointAngle
@@ -237,10 +244,7 @@ class HumanInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_01_Key.bvh')
-    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_02_Key.bvh')
-    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_04_Key.bvh')
-    human.addJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_05_Key.bvh')
-
+    human.readJointAnglesFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.csv')
     human.fixShoulders()
-    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_Key.bvh')
+
+    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.bvh')

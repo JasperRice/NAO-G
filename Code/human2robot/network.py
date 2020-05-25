@@ -95,7 +95,7 @@ class Net(nn.Module):
         x = self.cutAngle(x)
         return x
 
-    def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.05):
+    def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
         self.train_loss_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
@@ -116,6 +116,10 @@ class Net(nn.Module):
                     break
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss
+    
+    def __test__(self, human_test, nao_test):
+        self.eval()
+        self.test_loss = self.loss_func(self(human_test), nao_test)
 
     def __plot__(self, save=False):
         plt.figure()
@@ -125,8 +129,8 @@ class Net(nn.Module):
         plt.ylabel('Mean Squared Error')
         plt.legend(['Training error', 'Validation error'])
         plt.show()
-        # if save:
-        #     plt.savefig()
+        if save:
+            plt.savefig('result.png')
 
     @staticmethod
     def createFromRandomSearch(x_train, x_val, y_train, y_val, max_search=100):
@@ -147,7 +151,7 @@ class Net(nn.Module):
         return Net(n_input=x_train.size(1), n_output=y_train.size(1), **kwargs)
 
     @staticmethod
-    def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100):
+    def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100, filename=None):
         """Random search to find suitable hyper-parameter for the Network
 
         :param x_train: [description]
@@ -174,6 +178,9 @@ class Net(nn.Module):
         hl_options = generateHiddenLayerOptions()
         options = [af_options, dr_options, lr_options, hl_options]
         keyword = ['AF', 'dropout_rate', 'learning_rate', 'n_hidden']
+
+        if filename != None:
+            file = open(filename, 'a')
         
         best_option = None
         best_val_error = np.inf
@@ -181,10 +188,17 @@ class Net(nn.Module):
             current_option = dict(zip(keyword, list(map(choice, options))))
             net = Net(n_input=x_train.size(1), n_output=y_train.size(1), **current_option)
             net.__train__(x_train, x_val, y_train, y_val)
+            if filename != None:
+                file.write(current_option['AF']+', ')
+                file.write(str(current_option['dropout_rate'])+', ')
+                file.write(str(current_option['learning_rate'])+', ')
+                file.write(' '.join(list(map(str, current_option['n_hidden'])))+', ')
+                file.write(str(float(net.min_val_loss))+'\n')
             if net.min_val_loss < best_val_error:
+                best_val_error = float(net.min_val_loss)
                 best_option = current_option
 
-        print(best_option)
+        print('Best hyper-parameter option: ', best_option)
         return best_option
 
 
