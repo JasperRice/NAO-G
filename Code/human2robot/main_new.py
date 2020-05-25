@@ -46,12 +46,11 @@ if __name__ == "__main__":
         human_right_hand,
         human_right_hand_argu,
     ])
-    exit()
     
-    nao = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO.csv')
-    nao_new = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_new.csv')
+    nao = readCSV('dataset/NAO.csv')
+    nao_new = readCSV('dataset/NAO_new.csv')
     nao_new_argu = nao_new + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_new))
-    nao_right_hand = readCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv')
+    nao_right_hand = readCSV('dataset/NAO_right_hand.csv')
     nao_right_hand_argu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
     nao = np.vstack([
         nao,
@@ -65,6 +64,7 @@ if __name__ == "__main__":
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
 
+    exit()
 
     # Normalize and decompose the dataset
     if NORMALIZE:
