@@ -197,15 +197,17 @@ class NAOInterface:
 
 
 if __name__ == "__main__":
-    human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    human.readJointAnglesFromBVH('/home/nao/Documents/NAO-G/Code/key_data_collection/Talk_Key.bvh')
-    human.readJointAnglesFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.csv')
+    human = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
+    human.readJointAnglesFromBVH('dataset/BVH/Talk_Key.bvh')
+    # human.readJointAnglesFromCSV('dataset/human_right_hand.csv')
     try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     nao.getAngleLimits()
+    print(nao)
+    exit()
 
     try:
-        file = open('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv')
+        file = open('dataset/NAO_right_hand.csv')
         lines = file.readlines()
         file.close()
         COUNT = len(lines)
@@ -238,4 +240,4 @@ if __name__ == "__main__":
         else:
             if_record = raw_input("Input 'y' or 'n': ", end='')
 
-    nao.writeJointAnglesToCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/NAO_right_hand.csv', mode=mode)
+    nao.writeJointAnglesToCSV('dataset/NAO_right_hand.csv', mode=mode)
