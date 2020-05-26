@@ -9,16 +9,16 @@ ON_SET      = 2             # Visualize on [0: train, 1: validation or 2: test]
 PLAY_TALK   = not VISUALIZE # If play the sequence
 PLAY_SET    = 0             # The index of the talk
 
-USE_TALK    = True          # If use the whole Natural Talking dataset to decompose
 USE_HAND    = False         # If use the hand data recorded in the dataset
+USE_TALK    = True          # If use the whole Natural Talking dataset to decompose human poses
 NORMALIZE   = True          # If normalize dataset
 DECOMPOSE   = False         # If use PCA to decompose dataset
 
 MAX_EPOCH   = 5000          # The maximum training epoch
 AF          = 'tanh'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
-N_HIDDEN    = [128, 64]     # The number of nodes in the hidden layers
+N_HIDDEN    = [128, 96]     # The number of nodes in the hidden layers
 L_RATE      = 0.1           # The learning rate of the network
-DO_RATE     = 0.25          # Dropout rate of the hidden layer
+DO_RATE     = 0.42          # Dropout rate of the hidden layer
 STOP_EARLY  = True          # If stop earlier based on the validation error
 STOP_RATE   = 0.01          # If the validation error is this ratio higher than the minimum error, the training would stop
 

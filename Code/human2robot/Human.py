@@ -171,6 +171,17 @@ class HumanInterface:
             for angle in self.jointAngles:
                 angle[index:index+self.jointChannelCount[joint]] = deepcopy([0]*self.jointChannelCount[joint])
 
+    def downSample(self, N=5):
+        COUNT = 0
+        donw_sampled_joint_angles = []
+        while COUNT < len(self.jointAngles):
+            if COUNT % N == 0:
+                donw_sampled_joint_angles.append(self[COUNT])
+            COUNT += 1
+
+        self.jointAngles = donw_sampled_joint_angles
+        self.jointAnglesBackup = deepcopy(self.jointAngles)
+
     def head(self):
         for i in range(5):
             print('=====> Frame %d:' % i)
@@ -243,8 +254,9 @@ class HumanInterface:
 
 
 if __name__ == "__main__":
-    human = HumanInterface.createFromBVH('/home/nao/Documents/NAO-G/Code/human2robot/human_skeletion.bvh')
-    human.readJointAnglesFromCSV('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.csv')
+    human = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
+    human.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_001.bvh')
     human.fixShoulders()
-
-    human.writeJointAnglesToBVH('/home/nao/Documents/NAO-G/Code/human2robot/dataset/human_right_hand.bvh')
+    N=20
+    human.downSample(N=N)
+    human.writeJointAnglesToBVH('dataset/BVH/NaturalTalking_001_1From{}.bvh'.format(N))

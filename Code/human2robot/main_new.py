@@ -32,8 +32,8 @@ if __name__ == "__main__":
         except: pass
 
     # Read dataset
-    # talk_list = map(readCSV, talkfile)
-    # talk = np.vstack(talk_list)
+    talk_list = map(readCSV, talkfile)
+    talk = np.vstack(talk_list)
     human = readCSV('dataset/Human.csv')
     human_new = readCSV('dataset/Human_new.csv')
     human_new_argu = human_new + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_new))
@@ -63,8 +63,6 @@ if __name__ == "__main__":
     n = np.size(human, 0)
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
-
-    exit()
 
     # Normalize and decompose the dataset
     if NORMALIZE:
@@ -115,28 +113,33 @@ if __name__ == "__main__":
     # Transfer the numpy to tensor in pytorch
     dataset_torch = map(numpy2tensor, dataset)
     human_train_torch = dataset_torch[0]
-    human_val_torch = dataset_torch[1]
     human_test_torch = dataset_torch[2]
     nao_train_torch = dataset_torch[3]
-    nao_val_torch = dataset_torch[4]
     nao_test_torch = dataset_torch[5]
 
-    
+    # human_val_torch = dataset_torch[1]
+    # nao_val_torch = dataset_torch[4]
+    human_val_torch = torch.cat(dataset_torch[1:3], dim=0)
+    nao_val_torch = torch.cat(dataset_torch[4:6], dim=0)
+
+
     # Define Neural Network and train
 
-    # net = Net(n_input=np.size(human, 1),
-    #             n_hidden=N_HIDDEN,
-    #             n_output=np.size(nao, 1),
-    #             AF=AF, dropout_rate=DO_RATE
-    #             )
-    Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='/home/nao/Documents/NAO-G/Code/human2robot/dataset/Hyper-parameters.csv')
-    exit()
-    net = Net.createFromRandomSearch(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
+    # Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='dataset/Hyper-parameters-new.csv')
+    # net = Net.createFromRandomSearch(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
+    # exit()
+
+    net = Net(
+        n_input=np.size(human, 1),
+        n_hidden=N_HIDDEN,
+        n_output=np.size(nao, 1),
+        AF=AF, dropout_rate=DO_RATE, learning_rate=L_RATE, max_epoch=MAX_EPOCH
+    )
     net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
     net.__plot__()
 
 
-    # Visualize result on NAO
+    # Visualize validation result on NAO
     if VISUALIZE:
         net.eval()
         prediction = net(dataset_torch[ON_SET])
@@ -155,8 +158,9 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_001_1From20.bvh')
+        talk_play = (human_interface.jointAngles)
         net.eval()
-        talk_play = readCSV(filename[PLAY_SET])
 
         try: talk_play = human_scaler.transform(talk_play)
         except: pass
@@ -175,7 +179,7 @@ if __name__ == "__main__":
         except NameError: pass
 
     smooth_kwargs = {
-        'window_length':    13,
+        'window_length':    5,
         'polyorder':        3,
         'deriv':            0,
         'delta':            1.0,
@@ -183,9 +187,10 @@ if __name__ == "__main__":
         'mode':             'interp',
         'cval':             0.0
     }
-    nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
-    # execGesture(NAO_IP, NAO_PORT, nao_out[:,2:].tolist()) \
-    #     if USE_HAND else execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
+    # nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
+    execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
     to_plot = nao_out.T.tolist()
-    plt.plot(to_plot[-1][:100], '-')
+    plt.plot(to_plot[6][:100], '-') # LWristYaw
+    plt.show()
+    plt.plot(to_plot[-1][:100], '-') # RWristYaw
     plt.show()
