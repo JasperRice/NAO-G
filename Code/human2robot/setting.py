@@ -1,8 +1,8 @@
 NAO_IP      = '127.0.0.1'   # The IP address of the NAO robot, could be virtual or physical robot
-NAO_PORT    = 38225         # The port number of the NAO robot
+NAO_PORT    = 46811         # The port number of the NAO robot
 
-P_NAO_IP      = '130.237.67.140'
-P_NAO_PORT    = 9559
+P_NAO_IP    = '130.237.67.140'
+P_NAO_PORT  = 9559
 
 VISUALIZE   = False         # If visualize the training result on NAO based on the IP and Port defined
 ON_SET      = 2             # Visualize on [0: train, 1: validation or 2: test]
@@ -23,6 +23,6 @@ STOP_EARLY  = True          # If stop earlier based on the validation error
 STOP_RATE   = 0.01          # If the validation error is this ratio higher than the minimum error, the training would stop
 
 SAVE_DATA   = False         # If save the shuffled human gesture dataset
-PATHNAME    = "/home/nao/Documents/NAO-G/Code/human2robot/dataset/"
+PATHNAME    = "dataset/"
 FILENAME    = ["TALK_01.csv", "TALK_02.csv", "TALK_04.csv", "TALK_05.csv"]
 talkfile    = map(lambda x: PATHNAME + x, FILENAME)
