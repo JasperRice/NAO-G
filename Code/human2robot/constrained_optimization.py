@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-def constraints(x_opt, limits):
+def constraints(x_opt, limits, h):
     cons = []
     min_x = limits['minAngle']
     max_x = limits['maxAngle']
@@ -13,8 +13,8 @@ def constraints(x_opt, limits):
     for i in range(1, np.size(x_opt)):
         cons.append({'type': 'ineq', 'fun': lambda x_opt: max_x - x_opt[i]})
         cons.append({'type': 'ineq', 'fun': lambda x_opt: x_opt[i] - min_x})
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: max_v - (x_opt[i] - x_opt[i-1])})
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: (x_opt[i] - x_opt[i-1]) - min_v})
+        cons.append({'type': 'ineq', 'fun': lambda x_opt: max_v - (x_opt[i] - x_opt[i-1]) / h})
+        cons.append({'type': 'ineq', 'fun': lambda x_opt: (x_opt[i] - x_opt[i-1]) / h - min_v})
 
     return cons
 
@@ -22,9 +22,10 @@ def constraints(x_opt, limits):
 def objective(x_opt, **kwargs):
     q1 = kwargs['q1']
     q2 = kwargs['q2']
+    h = kwargs['h']
     x = kwargs['x']
-    v = x[1:] - x[:-1]
-    v_opt = x_opt[1:] - x_opt[:-2]
+    v = (x[1:] - x[:-1]) / h
+    v_opt = (x_opt[1:] - x_opt[:-1]) / h
 
     x_delta = np.atleast_2d(x_opt - x)
     v_delta = np.atleast_2d(v_opt - v)
@@ -46,8 +47,8 @@ if __name__ == "__main__":
         surface = 2 * (length*width + width*height + height*length)
         return surface
 
-    def objective(x):
-        return -calcVolume(x)
+    # def objective(x):
+    #     return -calcVolume(x)
 
     def constraint(x):
         return 10 - calcSurface(x)
