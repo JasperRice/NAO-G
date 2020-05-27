@@ -1,3 +1,4 @@
+from scipy.optimize import minimize
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -10,6 +11,7 @@ import torch.nn as nn
 import sys
 sys.path.append('human2robot/')
 
+from constrained_optimization import constraints, objective
 try: from execute import execGesture
 except: pass
 from data_processing import decompose, normalize, split, smooth
@@ -125,9 +127,9 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
 
-    # Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='dataset/Hyper-parameters-new.csv')
+    Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='dataset/Hyper-parameters-new.csv')
     # net = Net.createFromRandomSearch(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
-    # exit()
+    exit()
 
     net = Net(
         n_input=np.size(human, 1),
@@ -137,6 +139,7 @@ if __name__ == "__main__":
     )
     net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
     net.__plot__()
+    exit()
 
 
     # Visualize validation result on NAO
@@ -158,8 +161,8 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
-        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_001_1From20.bvh')
-        talk_play = (human_interface.jointAngles)
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From10.bvh')
+        talk_play = human_interface.jointAngles[:100]
         net.eval()
 
         try: talk_play = human_scaler.transform(talk_play)
@@ -187,7 +190,30 @@ if __name__ == "__main__":
         'mode':             'interp',
         'cval':             0.0
     }
-    # nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
+    nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
+    
+    all_limits = nao_interface.limits
+    h = 1.0 / 60 *10
+    nao_out = nao_out.T
+    for i, x in enumerate(nao_out):
+        print("Optimizing joint {}.".format(i))
+        x0 = x
+        limits = {
+            'minAngle':     all_limits['minAngle'][i],
+            'maxAngle':     all_limits['maxAngle'][i],
+            'maxChange':    all_limits['maxChange'][i]
+        }
+        cons = constraints(x, limits, h)
+        args = (np.eye(np.size(x)) * 5.0,
+                np.eye(np.size(x)-1) * 0.1,
+                h,
+                x
+               )
+        sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': True})
+        nao_out[i] = sol.x
+
+    nao_out = nao_out.T
+    
     execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
     to_plot = nao_out.T.tolist()
     plt.plot(to_plot[6][:100], '-') # LWristYaw

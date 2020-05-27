@@ -2,28 +2,29 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-def constraints(x_opt, limits, h):
+def constraints(x, limits, h):
     cons = []
     min_x = limits['minAngle']
     max_x = limits['maxAngle']
     min_v = -limits['maxChange']
     max_v = limits['maxChange']
-    cons.append({'type': 'ineq', 'fun': lambda x_opt: max_x - x_opt[0]})
-    cons.append({'type': 'ineq', 'fun': lambda x_opt: x_opt[0] - min_x})
-    for i in range(1, np.size(x_opt)):
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: max_x - x_opt[i]})
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: x_opt[i] - min_x})
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: max_v - (x_opt[i] - x_opt[i-1]) / h})
-        cons.append({'type': 'ineq', 'fun': lambda x_opt: (x_opt[i] - x_opt[i-1]) / h - min_v})
+    cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[0]})
+    cons.append({'type': 'ineq', 'fun': lambda x: x[0] - min_x})
+    for i in range(1, np.size(x)):
+        cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[i]})
+        cons.append({'type': 'ineq', 'fun': lambda x: x[i] - min_x})
+        cons.append({'type': 'ineq', 'fun': lambda x: max_v - (x[i] - x[i-1]) / h})
+        cons.append({'type': 'ineq', 'fun': lambda x: (x[i] - x[i-1]) / h - min_v})
 
     return cons
 
 
-def objective(x_opt, **kwargs):
-    q1 = kwargs['q1']
-    q2 = kwargs['q2']
-    h = kwargs['h']
-    x = kwargs['x']
+def objective(x_opt, *args):
+    print("Running optimization.")
+    q1 = args[0]
+    q2 = args[1]
+    h = args[2]
+    x = args[3]
     v = (x[1:] - x[:-1]) / h
     v_opt = (x_opt[1:] - x_opt[:-1]) / h
 
@@ -47,8 +48,9 @@ if __name__ == "__main__":
         surface = 2 * (length*width + width*height + height*length)
         return surface
 
-    # def objective(x):
-    #     return -calcVolume(x)
+    def myobjective(x):
+        print("Running")
+        return -calcVolume(x)
 
     def constraint(x):
         return 10 - calcSurface(x)
@@ -77,6 +79,4 @@ if __name__ == "__main__":
     heightGuess = 1
 
     x0 = np.array([lengthGuess, widthGuess, heightGuess])
-
-    sol = minimize(objective, x0, method='SLSQP', constraints=[cons, len_cons, len_cons_2], options={'disp': True})
-    print(sol.x)
+    sol = minimize(myobjective, x0, method='SLSQP', constraints=[cons, len_cons, len_cons_2], options={'disp': True})
