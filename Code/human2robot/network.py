@@ -55,7 +55,7 @@ class CutAngle(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
-                 AF='tanh', dropout_rate=0, learning_rate=0.1, max_epoch=1000,
+                 AF='tanh', dropout_rate=0, learning_rate=0.1, max_epoch=2000,
                  joint_upper=None, joint_lower=None):
         """The feed forward neural network with multiple hidden layers
         
