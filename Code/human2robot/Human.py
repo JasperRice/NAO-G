@@ -255,6 +255,9 @@ class HumanInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
+    print(len(human))
+    print(human.jointNames)
+    exit()
     human.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_001.bvh')
     human.fixShoulders()
     N=20

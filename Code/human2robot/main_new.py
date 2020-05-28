@@ -42,7 +42,7 @@ if __name__ == "__main__":
     human_right_hand = readCSV('dataset/Human_right_hand.csv')
     human_right_hand_argu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
     human = np.vstack([
-        human,
+        # human,
         human_new,
         human_new_argu,
         human_right_hand,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     nao_right_hand = readCSV('dataset/NAO_right_hand.csv')
     nao_right_hand_argu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
     nao = np.vstack([
-        nao,
+        # nao,
         nao_new,
         nao_new_argu,
         nao_right_hand,
@@ -127,9 +127,9 @@ if __name__ == "__main__":
 
     # Define Neural Network and train
 
-    Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='dataset/Hyper-parameters-new.csv')
+    # Net.__randomsearch__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_search=100, filename='dataset/Hyper-parameters-new.csv')
     # net = Net.createFromRandomSearch(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
-    exit()
+    # exit()
 
     net = Net(
         n_input=np.size(human, 1),
@@ -139,7 +139,6 @@ if __name__ == "__main__":
     )
     net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
     net.__plot__()
-    exit()
 
 
     # Visualize validation result on NAO
@@ -161,7 +160,7 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
-        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From10.bvh')
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From20.bvh')
         talk_play = human_interface.jointAngles[:100]
         net.eval()
 
@@ -190,10 +189,64 @@ if __name__ == "__main__":
         'mode':             'interp',
         'cval':             0.0
     }
+
+    # =====> Plot before smoothing
+    # to_plot = nao_out.T.tolist()
+
+    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['RWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LShoulderPitch'])
+    # plt.show()
+    # plt.plot(to_plot[-5][:100], '-', c='blue') # RShoulderPitch
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['RShoulderPitch'])
+    # plt.show()
+
+
+    # =====> Smoothing
     nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
+
+
+    # =====> Plot before smoothing
+    # to_plot = nao_out.T.tolist()
+
+    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['RWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LShoulderPitch'])
+    # plt.show()
+    # plt.plot(to_plot[-5][:100], '-', c='blue') # RShoulderPitch
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['RShoulderPitch'])
+    # plt.show()
+    # exit()
+
     
     all_limits = nao_interface.limits
-    h = 1.0 / 60 *10
+    h = 1.0 / 60 * 20
     nao_out = nao_out.T
     for i, x in enumerate(nao_out):
         print("Optimizing joint {}.".format(i))
@@ -211,12 +264,27 @@ if __name__ == "__main__":
                )
         sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': True})
         nao_out[i] = sol.x
-
     nao_out = nao_out.T
-    
-    execGesture(NAO_IP, NAO_PORT, nao_out.tolist())
-    to_plot = nao_out.T.tolist()
-    plt.plot(to_plot[6][:100], '-') # LWristYaw
-    plt.show()
-    plt.plot(to_plot[-1][:100], '-') # RWristYaw
-    plt.show()
+
+    # =====> Plot after constrained optimization
+    # to_plot = nao_out.T.tolist()
+
+    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['RWristYaw'])
+    # plt.show()
+    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
+    # plt.xlabel('Timestamp')
+    # plt.ylabel('Joint angle / rad')
+    # plt.legend(['LShoulderPitch'])
+    # plt.show()
+
+    # =====> Execute the motion
+    raw_input("Press ENTER to execute the motion.")
+    execGesture(NAO_IP, NAO_PORT, nao_out.tolist(), TIME=h)

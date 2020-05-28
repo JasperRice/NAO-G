@@ -1,5 +1,5 @@
 NAO_IP      = '127.0.0.1'   # The IP address of the NAO robot, could be virtual or physical robot
-NAO_PORT    = 33037         # The port number of the NAO robot
+NAO_PORT    = 35315         # The port number of the NAO robot
 
 P_NAO_IP    = '130.237.67.140'
 P_NAO_PORT  = 9559
@@ -15,10 +15,10 @@ NORMALIZE   = True          # If normalize dataset
 DECOMPOSE   = False         # If use PCA to decompose dataset
 
 MAX_EPOCH   = 5000          # The maximum training epoch
-AF          = 'tanh'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
-N_HIDDEN    = [128, 96]     # The number of nodes in the hidden layers
-L_RATE      = 0.1           # The learning rate of the network
-DO_RATE     = 0.42          # Dropout rate of the hidden layer
+AF          = 'leaky_relu'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
+N_HIDDEN    = [128, 64]     # The number of nodes in the hidden layers
+L_RATE      = 0.07          # The learning rate of the network
+DO_RATE     = 0.21          # Dropout rate of the hidden layer
 STOP_EARLY  = True          # If stop earlier based on the validation error
 STOP_RATE   = 0.01          # If the validation error is this ratio higher than the minimum error, the training would stop
 

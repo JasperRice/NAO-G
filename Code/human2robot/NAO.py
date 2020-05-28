@@ -78,6 +78,8 @@ class NAOInterface:
         print(self.limits['minAngle'])
         print('=====> Upper bound:')
         print(self.limits['maxAngle'])
+        print('=====> Max angle velocity:')
+        print(self.limits['maxChange'])
 
     def getJointIndex(self, jointName):
         return self.joint_names.index(jointName)
@@ -202,9 +204,10 @@ if __name__ == "__main__":
     # human.readJointAnglesFromCSV('dataset/human_right_hand.csv')
     try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
-    nao.getAngleLimits()
     print(nao)
     exit()
+    nao.readJointAnglesFromCSV('dataset/NAO_right_hand.csv')
+    nao.executePosesOneByOne()
 
     try:
         file = open('dataset/NAO_right_hand.csv')
