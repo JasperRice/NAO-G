@@ -205,6 +205,7 @@ if __name__ == "__main__":
     try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     print(nao)
+    nao.getAngleLimits()
     exit()
     nao.readJointAnglesFromCSV('dataset/NAO_right_hand.csv')
     nao.executePosesOneByOne()

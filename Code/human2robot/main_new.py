@@ -42,11 +42,11 @@ if __name__ == "__main__":
     human_right_hand = readCSV('dataset/Human_right_hand.csv')
     human_right_hand_agu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
     human = np.vstack([
-        human,
+        # human,
         human_new,
-        human_new_agu,
+        # human_new_agu,
         human_right_hand,
-        human_right_hand_agu,
+        # human_right_hand_agu,
     ])
     
     nao = readCSV('dataset/NAO.csv')
@@ -55,11 +55,11 @@ if __name__ == "__main__":
     nao_right_hand = readCSV('dataset/NAO_right_hand.csv')
     nao_right_hand_agu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
     nao = np.vstack([
-        nao,
+        # nao,
         nao_new,
-        nao_new_agu,
+        # nao_new_agu,
         nao_right_hand,
-        nao_right_hand_agu,
+        # nao_right_hand_agu,
     ])
 
     n = np.size(human, 0)
@@ -70,17 +70,14 @@ if __name__ == "__main__":
     if NORMALIZE:
         human, human_scaler = normalize(human)
         nao, nao_scaler = normalize(nao)
-        if USE_TALK:
-            talk, _ = normalize(talk)
+        if USE_TALK: talk, _ = normalize(talk)
 
     if USE_TALK:
         _, human_pca = decompose(talk)
         human = human_pca.transform(human)
-    else:
-        human, human_pca = decompose(human)
+    else: human, human_pca = decompose(human)
 
-    if DECOMPOSE:
-        nao, nao_pca = decompose(nao)
+    if DECOMPOSE: nao, nao_pca = decompose(nao)
 
 
     # Split the dataset into train, test, and validation
@@ -160,7 +157,8 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
-        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From20.bvh')
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
+        h = 1.0 / 60.0 * 5.0
         talk_play = human_interface.jointAngles[:100]
         net.eval()
 
@@ -193,7 +191,6 @@ if __name__ == "__main__":
     # =====> Plot before smoothing
     if True:
         print("Plotting before smoothing.")
-        h = 1.0 / 60 * 20
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
         # LWristYaw
@@ -229,6 +226,23 @@ if __name__ == "__main__":
         plt.xlabel('Timestamp')
         plt.ylabel('Joint angular velocity / rad/s')
         plt.legend(['RWristYaw'])
+        plt.show()
+        # RElbowYaw
+        plt.plot(to_plot[-3][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-3], all_limits['maxAngle'][-3]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RElbowYaw'])
+        plt.show()
+        angles = to_plot[-3][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-3], -all_limits['maxChange'][-3]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RElbowYaw'])
         plt.show()
         # LShoulderPitch
         plt.plot(to_plot[2][:100], '-', c='blue')
@@ -273,7 +287,6 @@ if __name__ == "__main__":
     # =====> Plot after smoothing
     if True:
         print("Plotting after smoothing.")
-        h = 1.0 / 60 * 20
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
         # LWristYaw
@@ -309,6 +322,23 @@ if __name__ == "__main__":
         plt.xlabel('Timestamp')
         plt.ylabel('Joint angular velocity / rad/s')
         plt.legend(['RWristYaw'])
+        plt.show()
+        # RElbowYaw
+        plt.plot(to_plot[-3][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-3], all_limits['maxAngle'][-3]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RElbowYaw'])
+        plt.show()
+        angles = to_plot[-3][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-3], -all_limits['maxChange'][-3]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RElbowYaw'])
         plt.show()
         # LShoulderPitch
         plt.plot(to_plot[2][:100], '-', c='blue')
@@ -347,7 +377,6 @@ if __name__ == "__main__":
 
 
     # =====> Constrained Optimization
-    h = 1.0 / 60 * 20
     all_limits = nao_interface.limits
     nao_out = nao_out.T
     for i, x in enumerate(nao_out):
@@ -371,7 +400,6 @@ if __name__ == "__main__":
     # =====> Plot after constrained optimization
     if True:
         print("Plotting after constrained optimization.")
-        h = 1.0 / 60 * 20
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
         # LWristYaw
@@ -408,6 +436,23 @@ if __name__ == "__main__":
         plt.ylabel('Joint angular velocity / rad/s')
         plt.legend(['RWristYaw'])
         plt.show()
+        # RElbowYaw
+        plt.plot(to_plot[-3][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-3], all_limits['maxAngle'][-3]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RElbowYaw'])
+        plt.show()
+        angles = to_plot[-3][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-3], -all_limits['maxChange'][-3]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RElbowYaw'])
+        plt.show()        
         # LShoulderPitch
         plt.plot(to_plot[2][:100], '-', c='blue')
         plt.hlines(y=[all_limits['minAngle'][2], all_limits['maxAngle'][2]],

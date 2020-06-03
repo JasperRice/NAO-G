@@ -1,5 +1,5 @@
 NAO_IP      = '127.0.0.1'   # The IP address of the NAO robot, could be virtual or physical robot
-NAO_PORT    = 35315         # The port number of the NAO robot
+NAO_PORT    = 44927         # The port number of the NAO robot
 
 P_NAO_IP    = '130.237.67.140'
 P_NAO_PORT  = 9559
