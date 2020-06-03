@@ -38,28 +38,28 @@ if __name__ == "__main__":
     talk = np.vstack(talk_list)
     human = readCSV('dataset/Human.csv')
     human_new = readCSV('dataset/Human_new.csv')
-    human_new_argu = human_new + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_new))
+    human_new_agu = human_new + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_new))
     human_right_hand = readCSV('dataset/Human_right_hand.csv')
-    human_right_hand_argu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
+    human_right_hand_agu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
     human = np.vstack([
-        # human,
+        human,
         human_new,
-        human_new_argu,
+        human_new_agu,
         human_right_hand,
-        human_right_hand_argu,
+        human_right_hand_agu,
     ])
     
     nao = readCSV('dataset/NAO.csv')
     nao_new = readCSV('dataset/NAO_new.csv')
-    nao_new_argu = nao_new + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_new))
+    nao_new_agu = nao_new + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_new))
     nao_right_hand = readCSV('dataset/NAO_right_hand.csv')
-    nao_right_hand_argu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
+    nao_right_hand_agu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
     nao = np.vstack([
-        # nao,
+        nao,
         nao_new,
-        nao_new_argu,
+        nao_new_agu,
         nao_right_hand,
-        nao_right_hand_argu,
+        nao_right_hand_agu,
     ])
 
     n = np.size(human, 0)
@@ -191,62 +191,164 @@ if __name__ == "__main__":
     }
 
     # =====> Plot before smoothing
-    # to_plot = nao_out.T.tolist()
-
-    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['RWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LShoulderPitch'])
-    # plt.show()
-    # plt.plot(to_plot[-5][:100], '-', c='blue') # RShoulderPitch
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['RShoulderPitch'])
-    # plt.show()
+    if True:
+        print("Plotting before smoothing.")
+        h = 1.0 / 60 * 20
+        all_limits = nao_interface.limits
+        to_plot = nao_out.T.tolist()
+        # LWristYaw
+        plt.plot(to_plot[6][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][6], all_limits['maxAngle'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        angles = to_plot[6][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][6], -all_limits['maxChange'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        # RWristYaw
+        plt.plot(to_plot[-1][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-1], all_limits['maxAngle'][-1]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        angles = to_plot[-1][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-1], -all_limits['maxChange'][-1]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        # LShoulderPitch
+        plt.plot(to_plot[2][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][2], all_limits['maxAngle'][2]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        angles = to_plot[2][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][2], -all_limits['maxChange'][2]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        # RShoulderPitch
+        plt.plot(to_plot[-5][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-5], all_limits['maxAngle'][-5]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
+        angles = to_plot[-5][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-5], -all_limits['maxChange'][-5]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
 
 
     # =====> Smoothing
     nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
 
 
-    # =====> Plot before smoothing
-    # to_plot = nao_out.T.tolist()
+    # =====> Plot after smoothing
+    if True:
+        print("Plotting after smoothing.")
+        h = 1.0 / 60 * 20
+        all_limits = nao_interface.limits
+        to_plot = nao_out.T.tolist()
+        # LWristYaw
+        plt.plot(to_plot[6][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][6], all_limits['maxAngle'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        angles = to_plot[6][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][6], -all_limits['maxChange'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        # RWristYaw
+        plt.plot(to_plot[-1][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-1], all_limits['maxAngle'][-1]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        angles = to_plot[-1][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-1], -all_limits['maxChange'][-1]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        # LShoulderPitch
+        plt.plot(to_plot[2][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][2], all_limits['maxAngle'][2]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        angles = to_plot[2][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][2], -all_limits['maxChange'][2]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        # RShoulderPitch
+        plt.plot(to_plot[-5][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-5], all_limits['maxAngle'][-5]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
+        angles = to_plot[-5][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-5], -all_limits['maxChange'][-5]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
 
-    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['RWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LShoulderPitch'])
-    # plt.show()
-    # plt.plot(to_plot[-5][:100], '-', c='blue') # RShoulderPitch
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['RShoulderPitch'])
-    # plt.show()
-    # exit()
 
-    
-    all_limits = nao_interface.limits
+    # =====> Constrained Optimization
     h = 1.0 / 60 * 20
+    all_limits = nao_interface.limits
     nao_out = nao_out.T
     for i, x in enumerate(nao_out):
         print("Optimizing joint {}.".format(i))
@@ -267,23 +369,80 @@ if __name__ == "__main__":
     nao_out = nao_out.T
 
     # =====> Plot after constrained optimization
-    # to_plot = nao_out.T.tolist()
+    if True:
+        print("Plotting after constrained optimization.")
+        h = 1.0 / 60 * 20
+        all_limits = nao_interface.limits
+        to_plot = nao_out.T.tolist()
+        # LWristYaw
+        plt.plot(to_plot[6][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][6], all_limits['maxAngle'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        angles = to_plot[6][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][6], -all_limits['maxChange'][6]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LWristYaw'])
+        plt.show()
+        # RWristYaw
+        plt.plot(to_plot[-1][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-1], all_limits['maxAngle'][-1]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        angles = to_plot[-1][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-1], -all_limits['maxChange'][-1]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RWristYaw'])
+        plt.show()
+        # LShoulderPitch
+        plt.plot(to_plot[2][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][2], all_limits['maxAngle'][2]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        angles = to_plot[2][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][2], -all_limits['maxChange'][2]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['LShoulderPitch'])
+        plt.show()
+        # RShoulderPitch
+        plt.plot(to_plot[-5][:100], '-', c='blue')
+        plt.hlines(y=[all_limits['minAngle'][-5], all_limits['maxAngle'][-5]],
+                xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
+        angles = to_plot[-5][:100]
+        vel = [(angles[i+1] - angles[i])/h for i in range(100-1)]
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[all_limits['maxChange'][-5], -all_limits['maxChange'][-5]],
+                   xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend(['RShoulderPitch'])
+        plt.show()
 
-    # plt.plot(to_plot[6][:100], '-', c='blue') # LWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[-1][:100], '-', c='blue') # RWristYaw
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['RWristYaw'])
-    # plt.show()
-    # plt.plot(to_plot[2][:100], '-', c='blue') # LShoulderPitch
-    # plt.xlabel('Timestamp')
-    # plt.ylabel('Joint angle / rad')
-    # plt.legend(['LShoulderPitch'])
-    # plt.show()
 
     # =====> Execute the motion
     raw_input("Press ENTER to execute the motion.")
