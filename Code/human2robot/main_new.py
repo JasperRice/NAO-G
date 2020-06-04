@@ -52,18 +52,14 @@ if __name__ == "__main__":
 
     # Read dataset
     talk_list = map(readCSV, talkfile)
-    talk = np.vstack(talk_list)
-    human = readCSV('dataset/Human.csv')
-    human_new = readCSV('dataset/Human_new.csv')
-    human_right_hand = readCSV('dataset/Human_right_hand.csv')
-
-    for motion in [human, human_new, human_right_hand]
-
-
+    talk = np.vstack(talk_list); talk = np.delete(talk, fingerIndex, axis=1)
+    human = readCSV('dataset/Human.csv'); human = np.delete(human, fingerIndex, axis=1)
+    human_new = readCSV('dataset/Human_new.csv'); human_new = np.delete(human_new, fingerIndex, axis=1)
+    human_right_hand = readCSV('dataset/Human_right_hand.csv'); human_right_hand = np.delete(human_right_hand, fingerIndex, axis=1)
     human_new_agu = human_new + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_new))
     human_right_hand_agu = human_right_hand + np.random.normal(loc=0.0, scale=0.6, size=np.shape(human_right_hand))
     human = np.vstack([
-        # human,
+        human,
         human_new,
         # human_new_agu,
         human_right_hand,
@@ -76,7 +72,7 @@ if __name__ == "__main__":
     nao_right_hand = readCSV('dataset/NAO_right_hand.csv')
     nao_right_hand_agu = nao_right_hand + np.random.normal(loc=0.0, scale=0.009, size=np.shape(nao_right_hand))
     nao = np.vstack([
-        # nao,
+        nao,
         nao_new,
         # nao_new_agu,
         nao_right_hand,
@@ -178,9 +174,11 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
-        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh')
         h = 1.0 / 60.0 * 5.0
         talk_play = human_interface.jointAngles[:100]
+        talk_play = np.array(talk_play)
+        talk_play = np.delete(talk_play, fingerIndex, axis=1)
         net.eval()
 
         try: talk_play = human_scaler.transform(talk_play)
