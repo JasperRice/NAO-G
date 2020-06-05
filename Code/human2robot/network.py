@@ -95,6 +95,9 @@ class Net(nn.Module):
         x = self.cutAngle(x)
         return x
 
+    def __cross__(self, human, nao):
+        pass
+
     def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
         self.train_loss_list = []
         self.val_loss_list = []
