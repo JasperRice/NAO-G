@@ -7,6 +7,7 @@ import numpy as np
 
 from itertools import permutations
 from random import choice
+from sklearn.utils import shuffle
 
 
 def getActFunc(AF='tanh'):
@@ -95,7 +96,7 @@ class Net(nn.Module):
         x = self.cutAngle(x)
         return x
 
-    def __cross__(self, human, nao):
+    def __cross__(self, human, nao, n=10):
         pass
 
     def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
