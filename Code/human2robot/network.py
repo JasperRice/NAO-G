@@ -97,7 +97,16 @@ class Net(nn.Module):
         return x
 
     def __cross__(self, human, nao, n=10):
-        pass
+        hs, ns = shuffle(human, nao)
+        hs_n = np.split(hs, indices_or_sections=n); ns_n = np.split(ns, indices_or_sections=n)
+        errors = []
+        for i in range(n):
+            hs_test = hs_n[i]; ns_test = ns_n[i]
+            hs_train = np.vstack([hs_n[:i], hs_n[i+1:]]); ns_train = np.vstack([ns_n[:i], ns_n[i+1:]])
+            self.__train__(hs_train, hs_test, ns_train, ns_test)
+            errors.append(self.min_val_loss)
+        return mean(errors)
+
 
     def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
         self.train_loss_list = []
