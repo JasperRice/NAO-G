@@ -23,6 +23,17 @@ from network import Net, numpy2tensor
 from setting import *
 
 
+def jerk(all_motion, f):
+    joints_sequence = all_motion.T
+    J = 0.0
+    for S in joints_sequence:
+        N = len(S)
+        for i in range(N-3):
+            J += ((S[i+3] - 3.0*S[i+2] + 3.0*S[i+1] - S[i]) * (f**3))**2
+    
+    return J / (2*f*(N-3))
+
+
 if __name__ == "__main__":
     # Reproducibility by setting a seed
     torch.manual_seed(2020)
@@ -196,6 +207,8 @@ if __name__ == "__main__":
 
         try: nao_out = nao_scaler.inverse_transform(nao_out)
         except NameError: pass
+
+    print(jerk(nao_out, 60/5)); exit()
 
     smooth_kwargs = {
         'window_length':    5,
@@ -418,6 +431,7 @@ if __name__ == "__main__":
 
     # =====> Plot after constrained optimization
     if True:
+        # for NAOJointIndex in [6, -1 ]
         print("Plotting after constrained optimization.")
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
