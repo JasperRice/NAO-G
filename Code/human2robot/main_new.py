@@ -23,6 +23,29 @@ from network import Net, numpy2tensor
 from setting import *
 
 
+def plot_joint_sequence(joints, jointNames, sequence, limits):
+    for joint in joints:
+        n = len(sequence[joint])
+        angles = sequence[joint]
+        vel = [(angles[i+1] - angles[i])/h for i in range(n-1)]
+        
+        plt.plot(angles, '-', c='blue')
+        plt.hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
+                    xmin=0, xmax=n-1, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angle / rad')
+        plt.legend([jointNames[joint]])
+        plt.show()
+
+        plt.plot(vel, '-', c='blue')
+        plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
+                    xmin=0, xmax=100, linestyles='dashed')
+        plt.xlabel('Timestamp')
+        plt.ylabel('Joint angular velocity / rad/s')
+        plt.legend([jointNames[joint]])
+        plt.show()
+
+
 def jerk(all_motion, f):
     joints_sequence = all_motion.T
     J = 0.0
@@ -185,9 +208,9 @@ if __name__ == "__main__":
 
     # Play the talk
     if PLAY_TALK:
-        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh')
+        human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
         h = 1.0 / 60.0 * 5.0
-        talk_play = human_interface.jointAngles[:100]
+        talk_play = human_interface.jointAngles[:500]                
         talk_play = np.array(talk_play)
         talk_play = np.delete(talk_play, fingerIndex, axis=1)
         net.eval()
@@ -208,10 +231,9 @@ if __name__ == "__main__":
         try: nao_out = nao_scaler.inverse_transform(nao_out)
         except NameError: pass
 
-    print(jerk(nao_out, 60/5)); exit()
 
     smooth_kwargs = {
-        'window_length':    5,
+        'window_length':    7,
         'polyorder':        3,
         'deriv':            0,
         'delta':            1.0,
@@ -220,8 +242,10 @@ if __name__ == "__main__":
         'cval':             0.0
     }
 
+
     # =====> Plot before smoothing
-    if True:
+    print("Jerkiness before smoothing: {}".format(jerk(nao_out, 1.0 / h)))
+    if False:
         print("Plotting before smoothing.")
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
@@ -314,10 +338,9 @@ if __name__ == "__main__":
 
     # =====> Smoothing
     nao_out = smooth(nao_out, smoothing_method='savgol', **smooth_kwargs)
-
-
     # =====> Plot after smoothing
-    if True:
+    print("Jerkiness after smoothing: {}".format(jerk(nao_out, 1.0 / h)))
+    if False:
         print("Plotting after smoothing.")
         all_limits = nao_interface.limits
         to_plot = nao_out.T.tolist()
@@ -430,7 +453,8 @@ if __name__ == "__main__":
     nao_out = nao_out.T
 
     # =====> Plot after constrained optimization
-    if True:
+    print("Jerkiness after constrained optimization: {}".format(jerk(nao_out, 1.0 / h)))
+    if False:
         # for NAOJointIndex in [6, -1 ]
         print("Plotting after constrained optimization.")
         all_limits = nao_interface.limits
