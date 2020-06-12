@@ -8,6 +8,7 @@ import numpy as np
 from itertools import permutations
 from random import choice
 from sklearn.utils import shuffle
+from statistics import mean 
 
 
 def getActFunc(AF='tanh'):
@@ -96,17 +97,21 @@ class Net(nn.Module):
         x = self.cutAngle(x)
         return x
 
-    def __cross__(self, human, nao, n=10):
+    def __cross__(self, human, nao, n=5):
         hs, ns = shuffle(human, nao)
         hs_n = np.split(hs, indices_or_sections=n); ns_n = np.split(ns, indices_or_sections=n)
-        errors = []
+        val_errors = []
+        tst_errors = []
         for i in range(n):
-            hs_test = hs_n[i]; ns_test = ns_n[i]
+            hs_val_test = hs_n[i]; ns_val_test = ns_n[i]
+            hs_val = hs_val_test[:len(hs_val_test//2)]; hs_test = hs_val_test[len(hs_val_test//2):]
+            ns_val = ns_val_test[:len(ns_val_test//2)]; ns_test = ns_val_test[len(ns_val_test//2):]
             hs_train = np.vstack([hs_n[:i], hs_n[i+1:]]); ns_train = np.vstack([ns_n[:i], ns_n[i+1:]])
-            self.__train__(hs_train, hs_test, ns_train, ns_test)
-            errors.append(self.min_val_loss)
-        return mean(errors)
-
+            self.__train__(hs_train, hs_val, ns_train, ns_val)
+            self.__test__(hs_test, ns_test)
+            val_errors.append(self.min_val_loss)
+            tst_errors.append(self.test_loss)
+        return mean(val_errors), mean(tst_errors)
 
     def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
         self.train_loss_list = []
