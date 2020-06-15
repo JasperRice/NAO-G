@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 import torch
 import torch.nn as nn
 
@@ -23,12 +24,22 @@ from network import Net, numpy2tensor
 from setting import *
 
 
+def choices(N, n):
+    token = list(range(N))
+    res = []
+    for _ in range(n):
+        ele = random.choice(token)
+        token.remove(ele)
+        res.append(ele)
+    return res
+
+
 def plot_joint_sequence(joints, jointNames, sequence, limits):
     for joint in joints:
         n = len(sequence[joint])
         angles = sequence[joint]
         vel = [(angles[i+1] - angles[i])/h for i in range(n-1)]
-        
+
         plt.plot(angles, '-', c='blue')
         plt.hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
                     xmin=0, xmax=n-1, linestyles='dashed')
@@ -39,7 +50,7 @@ def plot_joint_sequence(joints, jointNames, sequence, limits):
 
         plt.plot(vel, '-', c='blue')
         plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
-                    xmin=0, xmax=100, linestyles='dashed')
+                    xmin=0, xmax=n-2, linestyles='dashed')
         plt.xlabel('Timestamp')
         plt.ylabel('Joint angular velocity / rad/s')
         plt.legend([jointNames[joint]])
@@ -116,6 +127,10 @@ if __name__ == "__main__":
     n = np.size(human, 0)
     if n != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
+
+    mask = choices(n, 120)
+    human = human[mask]
+    nao = nao[mask]
 
     # Normalize and decompose the dataset
     if NORMALIZE:
@@ -210,7 +225,7 @@ if __name__ == "__main__":
     if PLAY_TALK:
         human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
         h = 1.0 / 60.0 * 5.0
-        talk_play = human_interface.jointAngles[:500]                
+        talk_play = human_interface.jointAngles[:100]                
         talk_play = np.array(talk_play)
         talk_play = np.delete(talk_play, fingerIndex, axis=1)
         net.eval()
