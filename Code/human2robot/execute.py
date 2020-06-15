@@ -48,12 +48,13 @@ def execGesture(IP, PORT, JOINT, TIME=None):
     """
     motion = ALProxy("ALMotion", IP, PORT)
     JOINT = cutJointAngles(IP, PORT, JOINT)
-    if TIME == None:
-        TIME = [[1.0/60*5] * len(JOINT[0]) for _ in range(len(JOINT))]
+    if TIME is None:
+        TIME = [[1.0/60*20] * len(JOINT[0]) for _ in range(len(JOINT))]
     else:
         TIME = [[TIME] * len(JOINT[0]) for _ in range(len(JOINT))]
 
-    # motion.angleInterpolation("Joints", JOINT, TIME, True)
+    motion.angleInterpolation("Joints", JOINT[0], 0.5, True)
+    raw_input("Press ENTER to start ...")
     i = 0
     for J, T in zip(JOINT, TIME):
         i += 1
