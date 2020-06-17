@@ -20,7 +20,6 @@ def constraints(x, limits, h):
 
 
 def objective(x_opt, *args):
-    print("Running optimization.")
     q1 = args[0]
     q2 = args[1]
     h = args[2]
@@ -31,6 +30,15 @@ def objective(x_opt, *args):
     x_delta = np.atleast_2d(x_opt - x)
     v_delta = np.atleast_2d(v_opt - v)
     return float(np.matmul(np.matmul(x_delta, q1), x_delta.T) + np.matmul(np.matmul(v_delta, q2), v_delta.T))
+
+
+def piecewise_obj(x_a_opt, *args):
+    q1 = args[0]
+    q2 = args[1]
+    q3 = args[2]
+    h = args[3]
+    x = args[4]
+    a = args[5]
 
 
 def piecewise_optimization(X, nao, Q=20):
