@@ -70,6 +70,8 @@ def smooth(X, smoothing_method, **kwargs):
     if smoothing_method == 'savgol':
         return np.array([signal.savgol_filter(x, **kwargs) for x in X.T]).T
 
+def piecewise(X, Q=20):
+    A = np.ones(Q)
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
