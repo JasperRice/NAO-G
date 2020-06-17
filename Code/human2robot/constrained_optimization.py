@@ -33,6 +33,11 @@ def objective(x_opt, *args):
     return float(np.matmul(np.matmul(x_delta, q1), x_delta.T) + np.matmul(np.matmul(v_delta, q2), v_delta.T))
 
 
+def piecewise_optimization(X, nao, Q=20):
+    A = np.ones(Q)
+    X
+
+
 if __name__ == "__main__":
     def calcVolume(x):
         length = x[0]
