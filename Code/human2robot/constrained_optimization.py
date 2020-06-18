@@ -40,10 +40,21 @@ def piecewise_obj(x_a_opt, *args):
     x = args[4]
     a = args[5]
 
+    x_opt = x_a_opt[0]
+    a_opt = x_a_opt[1]
+    
+    v = np.zeros(len(x)-1)
+    block = len(x) // len(a)
+
+    for i in range(len(x)-1):
+        v[i] = (x[i+1] - x[i]) * a[i//block] / h
+
 
 def piecewise_optimization(X, nao, Q=20):
-    A = np.ones(Q)
-    X
+    a = np.ones(Q)
+    for x in X:
+        x_a_opt = np.vstack([x, a])
+
 
 
 if __name__ == "__main__":
