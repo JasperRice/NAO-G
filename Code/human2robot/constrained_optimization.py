@@ -18,7 +18,6 @@ def constraints(x, limits, h):
 
     return cons
 
-
 def objective(x_opt, *args):
     q1 = args[0]
     q2 = args[1]
@@ -33,11 +32,32 @@ def objective(x_opt, *args):
 
 
 def piecewise_constraints(x_a, limits, h):
-    pass
+    x = x_a[0]
+    a = x_a[1]
+    cons = []
+    min_x = limits['minAngle']
+    max_x = limits['maxAngle']
+    min_v = -limits['maxChange']
+    max_v = limits['maxChange']
+    max_a = 1
+    min_a = 0.5
+    cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[0]})
+    cons.append({'type': 'ineq', 'fun': lambda x: x[0] - min_x})
+    for i in range(1, np.size(x)):
+        cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[i]})
+        cons.append({'type': 'ineq', 'fun': lambda x: x[i] - min_x})
+        cons.append({'type': 'ineq', 'fun': lambda x: max_v - (x[i] - x[i-1]) / h})
+        cons.append({'type': 'ineq', 'fun': lambda x: (x[i] - x[i-1]) / h - min_v})
+
+    for i in range(np.size(a)):
+        cons.append({'type': 'ineq', 'fun': lambda a: max_a - a[i]})
+        cons.append({'type': 'ineq', 'fun': lambda a: a[i] - min_a})
+
+    return cons
 
 
 
-def piecewise_obj(x_a_opt, *args):
+def piecewise_objective(x_a_opt, *args):
     x_opt = x_a_opt[0]
     a_opt = x_a_opt[1]
     v_opt = [0] * (len(x_opt) - 1)
