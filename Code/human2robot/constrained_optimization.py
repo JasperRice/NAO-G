@@ -31,9 +31,9 @@ def objective(x_opt, *args):
     return float(np.matmul(np.matmul(x_delta, q1), x_delta.T) + np.matmul(np.matmul(v_delta, q2), v_delta.T))
 
 
-def piecewise_constraints(x_a, limits, h):
-    x = x_a[0]
-    a = x_a[1]
+def piecewise_constraints(x_a, limits, h, r):
+    x = x_a[:-r]
+    a = x_a[-r:]
     cons = []
     min_x = limits['minAngle']
     max_x = limits['maxAngle']
@@ -58,18 +58,19 @@ def piecewise_constraints(x_a, limits, h):
 
 
 def piecewise_objective(x_a_opt, *args):
-    x_opt = x_a_opt[0]
-    a_opt = x_a_opt[1]
-    v_opt = [0] * (len(x_opt) - 1)
-    r = len(a_opt)
-    block = float(len(v_opt)) / r
-
     q1 = args[0]
     q2 = args[1]
     q3 = args[2]
     h = args[3]
     x = args[4]
+    r = args[5] # The number of segmentations
     v = (x[1:] - x[:-1]) / h
+
+    x_opt = x_a_opt[:-r]
+    a_opt = x_a_opt[-r:]
+    v_opt = [0] * (len(x_opt) - 1)
+    r = len(a_opt)
+    block = float(len(v_opt)) / r
 
     for i in range(len(v_opt)):
         v_opt[i] = (x_opt[i+1] - x_opt[i]) * a_opt[int(i//block)] / h 
