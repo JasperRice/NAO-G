@@ -213,18 +213,24 @@ class NAOInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
-    human.readJointAnglesFromBVH('dataset/BVH/Talk_Key.bvh')
+    human.readJointAnglesFromBVH('dataset/BVH/human_test.bvh')
     # human.readJointAnglesFromCSV('dataset/human_right_hand.csv')
     try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     print(nao)
     nao.getAngleLimits()
-    exit()
-    nao.readJointAnglesFromCSV('dataset/NAO_right_hand.csv')
-    nao.executePosesOneByOne()
+    # nao.animateAngleLimit('LShoulderRoll')
+    # HeadYaw HeadPitch 
+    # LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
+    # LHipYawPitch LHipRoll LHipPitch LKneePitch LAnklePitch LAnkleRoll 
+    # RHipYawPitch RHipRoll RHipPitch RKneePitch RAnklePitch RAnkleRoll 
+    # RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw
+
+    # nao.readJointAnglesFromCSV('dataset/NAO_right_hand.csv')
+    # nao.executePosesOneByOne()
 
     try:
-        file = open('dataset/NAO_right_hand.csv')
+        file = open('dataset/NAO_test.csv')
         lines = file.readlines()
         file.close()
         COUNT = len(lines)
@@ -257,4 +263,4 @@ if __name__ == "__main__":
         else:
             if_record = raw_input("Input 'y' or 'n': ", end='')
 
-    nao.writeJointAnglesToCSV('dataset/NAO_right_hand.csv', mode=mode)
+    nao.writeJointAnglesToCSV('dataset/NAO_test.csv', mode=mode)
