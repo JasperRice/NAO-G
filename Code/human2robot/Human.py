@@ -255,11 +255,11 @@ class HumanInterface:
 
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
-    print(len(human))
-    print(human.jointNames)
-    exit()
-    human.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_001.bvh')
+    # print(len(human))
+    # print(human.jointNames)
+    talk_number = 15
+    human.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_0{}.bvh'.format(talk_number))
     human.fixShoulders()
-    N=20
+    N = 60
     human.downSample(N=N)
-    human.writeJointAnglesToBVH('dataset/BVH/NaturalTalking_001_1From{}.bvh'.format(N))
+    human.writeJointAnglesToBVH('dataset/BVH/NaturalTalking_0{}_1From{}.bvh'.format(talk_number, N))
