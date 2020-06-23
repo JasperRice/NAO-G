@@ -81,15 +81,18 @@ class NAOInterface:
         print('=====> Max angle velocity:')
         print(self.limits['maxChange'])
 
-    def animateAngleLimit(self, jointName, inter=100, frac=0.5, repeat=2):
+    def animateAngleLimit(self, jointName, inter=25, time=0.1, repeat=2):
         index = self.getJointIndex(jointName)
+        print("Animate the limits on joint "+self.joint_names[index])
         minAngle = self.limits['minAngle'][index]
         maxAngle = self.limits['maxAngle'][index]
         sequence = np.linspace(minAngle, maxAngle, inter)
         sequence = np.hstack([sequence, sequence[::-1]])
-        for i in range(repeat):
-            for angle in sequence:
-                self.motion.setAngles(jointName, angle, frac)
+        sequence = np.tile(sequence, repeat)
+        TIME = [time * (i+1) for i in range(len(sequence))]
+        self.motion.angleInterpolation(jointName, sequence[0], 1, True)
+        raw_input('Press ENTER to start animate the joint limits.')
+        self.motion.angleInterpolation(jointName, sequence.tolist(), TIME, True)
 
     def getJointIndex(self, jointName):
         return self.joint_names.index(jointName)
