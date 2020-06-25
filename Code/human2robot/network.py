@@ -87,7 +87,9 @@ class Net(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
 
         self.max_epoch = max_epoch
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate, weight_decay=0)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=0)
+        self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
         self.loss_func = nn.MSELoss()
 
     def forward(self, x):
@@ -129,7 +131,7 @@ class Net(nn.Module):
             self.eval()
             val_loss = self.loss_func(self(human_val), nao_val)
             self.val_loss_list.append(val_loss.item())
-            if epoch > 25:
+            if epoch > 150:
                 if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
                     break
                 elif val_loss < self.min_val_loss:
@@ -167,6 +169,47 @@ class Net(nn.Module):
         """
         kwargs = Net.__randomsearch__(x_train, x_val, y_train, y_val, max_search)
         return Net(n_input=x_train.size(1), n_output=y_train.size(1), **kwargs)
+
+
+    @staticmethod
+    def __randomsearch_cross__(x, y, max_search=100, filename=None):
+        def generateHiddenLayerOptions(width_options=[32 * i for i in range(1,5)]):
+            options = []
+            for length in range(1, len(width_options)+1):
+                options.extend(permutations(width_options, length))
+            return list(map(list, options))
+
+        af_options = ['relu', 'relu6', 'leaky_relu', 'celu', 'gelu', 'selu',
+            'softplus', 'sigmoid', 'log_sigmoid', 'tanh']
+        dr_options = [0.01 * i for i in range(50)]
+        lr_options = [0.005 * (i + 1) for i in range(20)]
+        hl_options = generateHiddenLayerOptions()
+        options = [af_options, dr_options, lr_options, hl_options]
+        keyword = ['AF', 'dropout_rate', 'learning_rate', 'n_hidden']
+
+        if filename != None:
+            file = open(filename, 'a')
+        
+        best_option = None
+        best_tst_error = float('inf')
+        for i in range(max_search):
+            current_option = dict(zip(keyword, list(map(choice, options))))
+            net = Net(n_input=x.size(1), n_output=y.size(1), **current_option)
+            val_error, tst_error = net.__cross__(x, y)
+            if filename != None:
+                file.write(current_option['AF']+', ')
+                file.write(str(current_option['dropout_rate'])+', ')
+                file.write(str(current_option['learning_rate'])+', ')
+                file.write(' '.join(list(map(str, current_option['n_hidden'])))+', ')
+                file.write(str(float(val_error))+', ')
+                file.write(str(float(tst_error))+'\n')
+            if tst_error < best_tst_error:
+                best_tst_error = tst_error
+                best_option = current_option
+
+        print('Best hyper-parameter option: ', best_option)
+        return best_option
+
 
     @staticmethod
     def __randomsearch__(x_train, x_val, y_train, y_val, max_search=100, filename=None):
