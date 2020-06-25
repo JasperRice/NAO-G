@@ -70,6 +70,7 @@ if n != np.size(nao_data, 0):
 
 results = {}
 for i in [25, 50, 75, 100, 125]:
+    results[i] = [None] * 20
     random.seed(1000)
     mask = choices(n, i)
     
