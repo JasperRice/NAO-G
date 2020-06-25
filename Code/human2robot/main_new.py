@@ -229,7 +229,7 @@ if __name__ == "__main__":
     if PLAY_TALK:
         human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
         h = 1.0 / 60.0 * 5.0
-        talk_play = human_interface.jointAngles[:100]                
+        talk_play = human_interface.jointAngles[:500]                
         talk_play = np.array(talk_play)
         talk_play = np.delete(talk_play, fingerIndex, axis=1)
         net.eval()
@@ -272,9 +272,9 @@ if __name__ == "__main__":
     plot_joint_sequence([5, 20], nao_interface.joint_names, nao_out.T, nao_interface.limits, h)
 
 
-    # =====> Constrained Optimization
     all_limits = nao_interface.limits
     nao_out = nao_out.T
+    # =====> Constrained Optimization
     for i, x in enumerate(nao_out):
         print("Optimizing joint {}.".format(i))
         x0 = x
@@ -289,14 +289,9 @@ if __name__ == "__main__":
                 h,
                 x
                )
-        sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': True})
+        sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': False})
         nao_out[i] = sol.x
-    nao_out = nao_out.T
-
-
     # =====> Piecewise Constrained Optimization
-    # all_limits = nao_interface.limits
-    # nao_out = nao_out.T
     # for i, x in enumerate(nao_out):
     #     if i not in (list(range(2,7))+list(range(19,24))):
     #         continue
@@ -320,12 +315,12 @@ if __name__ == "__main__":
     #     cons = piecewise_constraints(x_a_0, limits, h, r)
     #     sol = minimize(piecewise_objective, x_a_0, args=args, method='SLSQP', constraints=cons, options={'disp': True})
     #     nao_out[i] = (sol.x)[:-r]
-    # nao_out = nao_out.T
+    nao_out = nao_out.T
 
 
     # =====> Plot after constrained optimization
     print("Jerkiness after constrained optimization: {}".format(jerk(nao_out, 1.0 / h)))
-    plot_joint_sequence([5, 20], nao_interface.joint_names, nao_out.T, nao_interface.limits, h)
+    plot_joint_sequence([5, 20], nao_interface.joint_names, nao_out.T, nao_interface.limits, h, filename="cons_opt")
 
 
     # =====> Execute the motion
