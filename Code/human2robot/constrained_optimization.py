@@ -55,8 +55,6 @@ def piecewise_constraints(x_a, limits, h, r):
 
     return cons
 
-
-
 def piecewise_objective(x_a_opt, *args):
     q1 = args[0]
     q2 = args[1]
@@ -73,7 +71,7 @@ def piecewise_objective(x_a_opt, *args):
     block = float(len(v_opt)) / r
 
     for i in range(len(v_opt)):
-        v_opt[i] = (x_opt[i+1] - x_opt[i]) * a_opt[int(i//block)] / h 
+        v_opt[i] = (x_opt[i+1] - x_opt[i]) * a_opt[int(i//block)] / h
 
     x_delta = np.atleast_2d(x_opt - x)
     v_delta = np.atleast_2d(v_opt - v)
