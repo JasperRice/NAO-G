@@ -57,7 +57,7 @@ class CutAngle(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
-                 AF='tanh', dropout_rate=0, learning_rate=0.1, max_epoch=2000,
+                 AF='relu', dropout_rate=0, learning_rate=0.1, max_epoch=2000, reg=0,
                  joint_upper=None, joint_lower=None):
         """The feed forward neural network with multiple hidden layers
         
@@ -67,7 +67,7 @@ class Net(nn.Module):
         :type n_hidden: list[int]
         :param n_output: The dimension of the output layer
         :type n_output: int
-        :param AF: The activation function to be used, defaults to 'tanh'
+        :param AF: The activation function to be used, defaults to 'relu'
         :type AF: str, optional
         :param dropout_rate: The dropout rate of the hidden layer, defaults to 0
         :type dropout_rate: int, optional
@@ -82,21 +82,21 @@ class Net(nn.Module):
         self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hidden[0])])
         self.LayerList.extend(nn.Linear(n_hidden[i], n_hidden[i+1]) for i in range(len(n_hidden)-1))
         self.hidden2output = nn.Linear(n_hidden[-1], n_output)
-        self.cutAngle = CutAngle(joint_upper, joint_lower)
+        # self.cutAngle = CutAngle(joint_upper, joint_lower)
         self.AF = getActFunc(AF)
         self.dropout = nn.Dropout(dropout_rate)
 
         self.max_epoch = max_epoch
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate, weight_decay=0)
-        # self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=0)
-        self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
+        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate, weight_decay=reg)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=reg)
+        # self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
         self.loss_func = nn.MSELoss()
 
     def forward(self, x):
         for layer in self.LayerList:
             x = self.AF(self.dropout(layer(x)))
         x = self.hidden2output(x)
-        x = self.cutAngle(x)
+        # x = self.cutAngle(x)
         return x
 
     def __cross__(self, human, nao, n=5):
@@ -115,7 +115,7 @@ class Net(nn.Module):
             tst_errors.append(self.test_loss)
         return mean(val_errors), mean(tst_errors)
 
-    def __train__(self, human_train, human_val, nao_train, nao_val, stop_rate=0.01):
+    def __train__(self, human_train, human_val, nao_train, nao_val, stop=False, stop_rate=0.01):
         self.train_loss_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
@@ -131,7 +131,7 @@ class Net(nn.Module):
             self.eval()
             val_loss = self.loss_func(self(human_val), nao_val)
             self.val_loss_list.append(val_loss.item())
-            if epoch > 150:
+            if epoch > 150 and stop:
                 if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
                     break
                 elif val_loss < self.min_val_loss:
