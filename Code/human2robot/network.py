@@ -122,6 +122,7 @@ class Net(nn.Module):
         for epoch in range(self.max_epoch):
             print('=====> Epoch: {}'.format(epoch))
             self.train()
+            # self.lr_scheduler.step()
             self.optimizer.zero_grad()
             train_loss = self.loss_func(self(human_train), nao_train)
             self.train_loss_list.append(train_loss.item())

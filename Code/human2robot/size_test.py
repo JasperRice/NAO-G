@@ -69,8 +69,9 @@ if n != np.size(nao_data, 0):
     sys.exit("Numbers of input and target are different.")
 
 results = {}
+test_num = 20
 for i in [25, 50, 75, 100, 125]:
-    results[i] = [None] * 20
+    results[i] = [None] * test_num
     random.seed(1000)
     mask = choices(n, i)
     
@@ -82,6 +83,11 @@ for i in [25, 50, 75, 100, 125]:
 
     human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2, random_state=500)
 
-    for j in range(20):
-        pass
+    net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1),
+              AF=AF, dropout_rate=0, learning_rate=L_RATE, max_epoch=1500)
+
+    for j in range(test_num):
+        net.__train__(human_train, human_val, nao_train, nao_val)
+        net.__test__(human_test, nao_test)
+        results[i][j] = net.
     
