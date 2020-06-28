@@ -70,8 +70,10 @@ if n != np.size(nao_data, 0):
 
 results = {}
 test_num = 20
+file_val = open("size_test_val.csv", 'w')
+file_test = open("size_test.csv", 'w')
 for i in [25, 50, 75, 100, 125]:
-    results[i] = [None] * test_num
+    results[i] = {"val": [], "test": []}
     random.seed(1000)
     mask = choices(n, i)
     
@@ -89,5 +91,7 @@ for i in [25, 50, 75, 100, 125]:
     for j in range(test_num):
         net.__train__(human_train, human_val, nao_train, nao_val)
         net.__test__(human_test, nao_test)
-        results[i][j] = net.
-    
+        results[i]["val"].append(net.min_val_loss)
+        results[i]["test"].append(net.test_loss)
+    file_val.write(', '.join(map(str, results[i]["val"])) + '\n')
+    file_test.write(', '.join(map(str, results[i]["test"])) + '\n')
