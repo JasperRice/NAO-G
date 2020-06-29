@@ -33,7 +33,6 @@ def choices(N, n):
     return res
 
 
-torch.manual_seed(2020)
 human_interface = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
 try: nao_interface = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
 except:
@@ -79,19 +78,28 @@ for i in [25, 50, 75, 100, 125]:
     
     human = human_data[mask]
     human, human_scaler = normalize(human); human = human_pca.transform(human)
+    __human_test__ = human_pca.transform(human_scaler.transform(human_test))
 
     nao = nao_data[mask]
     nao, nao_scaler = normalize(nao)
+    __nao_test__ = nao_scaler.transform(nao_test)
+
+    __human_test__ = torch.from_numpy(__human_test__).float()
+    __nao_test__ = torch.from_numpy(__nao_test__).float()
 
     human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2, random_state=500)
+    human_train = torch.from_numpy(human_train).float()
+    human_val = torch.from_numpy(human_val).float()
+    nao_train = torch.from_numpy(nao_train).float()
+    nao_val = torch.from_numpy(nao_val).float()
 
     net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1),
               AF=AF, dropout_rate=0, learning_rate=L_RATE, max_epoch=1500)
 
     for j in range(test_num):
-        net.__train__(human_train, human_val, nao_train, nao_val)
-        net.__test__(human_test, nao_test)
-        results[i]["val"].append(net.min_val_loss)
-        results[i]["test"].append(net.test_loss)
+        net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=3000, stop=True)
+        net.__test__(__human_test__, __nao_test__)
+        results[i]["val"].append(float(net.min_val_loss))
+        results[i]["test"].append(float(net.test_loss))
     file_val.write(', '.join(map(str, results[i]["val"])) + '\n')
     file_test.write(', '.join(map(str, results[i]["test"])) + '\n')
