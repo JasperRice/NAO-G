@@ -67,39 +67,49 @@ n = np.size(human_data, 0)
 if n != np.size(nao_data, 0):
     sys.exit("Numbers of input and target are different.")
 
-results = {}
-test_num = 20
+file_train = open("size_train.csv", 'w')
 file_val = open("size_test_val.csv", 'w')
 file_test = open("size_test.csv", 'w')
-for i in [25, 50, 75, 100, 125]:
-    results[i] = {"val": [], "test": []}
-    random.seed(1000)
-    mask = choices(n, i)
-    
-    human = human_data[mask]
-    human, human_scaler = normalize(human); human = human_pca.transform(human)
-    __human_test__ = human_pca.transform(human_scaler.transform(human_test))
 
-    nao = nao_data[mask]
-    nao, nao_scaler = normalize(nao)
-    __nao_test__ = nao_scaler.transform(nao_test)
+results = {}
+test_num = 100
 
-    __human_test__ = torch.from_numpy(__human_test__).float()
-    __nao_test__ = torch.from_numpy(__nao_test__).float()
-
-    human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2, random_state=500)
-    human_train = torch.from_numpy(human_train).float()
-    human_val = torch.from_numpy(human_val).float()
-    nao_train = torch.from_numpy(nao_train).float()
-    nao_val = torch.from_numpy(nao_val).float()
-
-    net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1),
-              AF=AF, dropout_rate=0, learning_rate=L_RATE, max_epoch=1500)
+for i in [20 + 10 * j for j in range(11)]:
+    results[i] = {"train": [], "val": [], "test": []}
 
     for j in range(test_num):
+        mask = choices(n, i)
+
+        human = human_data[mask]
+        human, human_scaler = normalize(human); human = human_pca.transform(human)
+
+        nao = nao_data[mask]
+        nao, nao_scaler = normalize(nao)
+
+        __human_test__ = human_pca.transform(human_scaler.transform(human_test))
+        __nao_test__ = nao_scaler.transform(nao_test)
+        __human_test__ = torch.from_numpy(__human_test__).float()
+        __nao_test__ = torch.from_numpy(__nao_test__).float()
+
+        human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2)
+        human_train = torch.from_numpy(human_train).float()
+        human_val = torch.from_numpy(human_val).float()
+        nao_train = torch.from_numpy(nao_train).float()
+        nao_val = torch.from_numpy(nao_val).float()
+
+        net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1), 
+                  AF=AF, dropout_rate=0, learning_rate=L_RATE, max_epoch=3000)
+
         net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=3000, stop=True)
         net.__test__(__human_test__, __nao_test__)
+        results[i]["train"].append(float(min(net.train_loss_list)))
         results[i]["val"].append(float(net.min_val_loss))
         results[i]["test"].append(float(net.test_loss))
+
+    file_train.write(', '.join(map(str, results[i]["train"])) + '\n')
     file_val.write(', '.join(map(str, results[i]["val"])) + '\n')
     file_test.write(', '.join(map(str, results[i]["test"])) + '\n')
+
+file_train.close()
+file_val.close()
+file_test.close()
