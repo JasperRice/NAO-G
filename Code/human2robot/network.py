@@ -115,12 +115,11 @@ class Net(nn.Module):
             tst_errors.append(self.test_loss)
         return mean(val_errors), mean(tst_errors)
 
-    def __train__(self, human_train, human_val, nao_train, nao_val, stop=False, stop_rate=0.01):
+    def __train__(self, human_train, human_val, nao_train, nao_val, max_epoch=1500, stop=False, stop_rate=0.01):
         self.train_loss_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
-        for epoch in range(self.max_epoch):
-            print('=====> Epoch: {}'.format(epoch))
+        for epoch in range(max_epoch):
             self.train()
             # self.lr_scheduler.step()
             self.optimizer.zero_grad()
@@ -134,13 +133,14 @@ class Net(nn.Module):
             self.val_loss_list.append(val_loss.item())
             if epoch > 150 and stop:
                 if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
+                    print('=====> Terminate at epoch: {}'.format(epoch))
                     break
                 elif val_loss < self.min_val_loss:
-                    self.min_val_loss = val_loss
+                    self.min_val_loss = val_loss.item()
     
     def __test__(self, human_test, nao_test):
         self.eval()
-        self.test_loss = self.loss_func(self(human_test), nao_test)
+        self.test_loss = self.loss_func(self(human_test), nao_test).item()
 
     def __plot__(self, save=False):
         plt.figure()
