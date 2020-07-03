@@ -57,7 +57,7 @@ class CutAngle(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, n_input, n_hidden, n_output, 
-                 AF='relu', dropout_rate=0, learning_rate=0.1, max_epoch=2000, reg=0,
+                 AF='relu', dropout_rate=0, learning_rate=0.1, reg=0, ues_lr_scheduler=False,
                  joint_upper=None, joint_lower=None):
         """The feed forward neural network with multiple hidden layers
         
@@ -81,15 +81,18 @@ class Net(nn.Module):
         # Define each layer here:
         self.LayerList = nn.ModuleList([nn.Linear(n_input, n_hidden[0])])
         self.LayerList.extend(nn.Linear(n_hidden[i], n_hidden[i+1]) for i in range(len(n_hidden)-1))
+        self.BNList = nn.ModuleList([nn.BatchNorm1d(n_hidden[i]) for i in range(len(n_hidden)-1)])
+
         self.hidden2output = nn.Linear(n_hidden[-1], n_output)
         # self.cutAngle = CutAngle(joint_upper, joint_lower)
         self.AF = getActFunc(AF)
         self.dropout = nn.Dropout(dropout_rate)
 
-        self.max_epoch = max_epoch
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate, weight_decay=reg)
-        # self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=reg)
-        # self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
+        # self.optimizer = torch.optim.SGD(self.parameters(), lr=learning_rate, weight_decay=reg)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=reg)
+        self.ues_lr_scheduler = ues_lr_scheduler
+        if self.ues_lr_scheduler:
+            self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
         self.loss_func = nn.MSELoss()
 
     def forward(self, x):
@@ -121,7 +124,8 @@ class Net(nn.Module):
         self.min_val_loss = np.inf
         for epoch in range(max_epoch):
             self.train()
-            # self.lr_scheduler.step()
+            if self.ues_lr_scheduler:
+                self.lr_scheduler.step()
             self.optimizer.zero_grad()
             train_loss = self.loss_func(self(human_train), nao_train)
             self.train_loss_list.append(train_loss.item())
@@ -137,6 +141,7 @@ class Net(nn.Module):
                     break
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss.item()
+
     
     def __test__(self, human_test, nao_test):
         self.eval()

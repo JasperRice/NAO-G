@@ -1,3 +1,4 @@
+from itertools import permutations
 from scipy.optimize import minimize
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
@@ -22,6 +23,14 @@ try: from NAO import NAOInterface
 except: pass
 from network import Net, numpy2tensor
 from setting import *
+
+
+def generateHiddenLayerOptions(width_options=[32 * i for i in range(1,5)]):
+            options = []
+            for length in range(1, len(width_options)+1):
+                options.extend(permutations(width_options, length))
+            return list(map(list, options))
+
 
 def choices(N, n):
     token = list(range(N))
@@ -60,14 +69,66 @@ talk_list = map(readCSV, talkfile)
 talk = np.vstack(talk_list); talk = np.delete(talk, fingerIndex, axis=1)
 talk, _ = normalize(talk); _, human_pca = decompose(talk)
 
-human_data = readCSV('dataset/Human_overlap.csv'); human_data = np.delete(human_data, fingerIndex, axis=1)
+human = readCSV('dataset/Human_overlap.csv'); human = np.delete(human, fingerIndex, axis=1)
 human_test = readCSV('dataset/Human_test.csv'); human_test = np.delete(human_test, fingerIndex, axis=1)
-nao_data = readCSV('dataset/NAO_overlap.csv'); nao_test = readCSV('dataset/NAO_test.csv')
-n = np.size(human_data, 0)
-if n != np.size(nao_data, 0):
+nao = readCSV('dataset/NAO_overlap.csv')
+nao_test = readCSV('dataset/NAO_test.csv')
+n = np.size(human, 0)
+if n != np.size(nao, 0):
     sys.exit("Numbers of input and target are different.")
 
+human, human_scaler = normalize(human); human = human_pca.transform(human)
+nao, nao_scaler = normalize(nao)
 
-num_search = 100
+__human_test__ = human_pca.transform(human_scaler.transform(human_test))
+__nao_test__ = nao_scaler.transform(nao_test)
+__human_test__ = torch.from_numpy(__human_test__).float()
+__nao_test__ = torch.from_numpy(__nao_test__).float()
 
+human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2)
+human_train = torch.from_numpy(human_train).float()
+human_val = torch.from_numpy(human_val).float()
+nao_train = torch.from_numpy(nao_train).float()
+nao_val = torch.from_numpy(nao_val).float()
+
+
+keywords = ['Learning Rate', 'Activation Function', 'Weight Decay', 'Hidden Layers', 'Validation Error']
+lr_range = (-4, 0)
+reg_range = (-5, -1)
+hl_options = generateHiddenLayerOptions()
+af_options = ['relu', 'leaky_relu']
+
+try:
+    file = open("random_search_result.csv", 'r')
+    lines = file.readlines()
+    file.close()
+    if len(lines) == 0:
+        file = open("random_search_result.csv", 'w')
+        file.writelines(', '.join(keywords) + '\n')
+    else:
+        file = open("random_search_result.csv", 'a')
+except:
+    file = open("random_search_result.csv", 'w')
+    file.writelines(', '.join(keywords) + '\n')
+
+best_search = None
+best_val_error = np.inf
+num_search = 1000
 for i in range(num_search):
+    lr = 10 ** random.uniform(*lr_range)
+    reg = 10 ** random.uniform(*reg_range)
+    hidden_layers = random.choice(hl_options)
+    af = random.choice(af_options)
+
+    net = Net(n_input=np.size(human, 1), n_hidden=hidden_layers, n_output=np.size(nao, 1), 
+              AF=af, dropout_rate=0, learning_rate=lr, reg=reg)
+    net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=3000, stop=True)
+
+    if net.min_val_loss < best_val_error:
+        best_search = [lr, af, reg, hidden_layers]
+        best_val_error = float(net.min_val_loss)
+
+    hidden_layers_str = ' '.join(map(str, hidden_layers))
+    file.writelines(', '.join(map(str, [lr, af, reg, hidden_layers_str, net.min_val_loss])) + '\n')
+
+print('Best hyper-parameter option: ', best_search)
