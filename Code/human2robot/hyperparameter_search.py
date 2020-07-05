@@ -85,7 +85,7 @@ __nao_test__ = nao_scaler.transform(nao_test)
 __human_test__ = torch.from_numpy(__human_test__).float()
 __nao_test__ = torch.from_numpy(__nao_test__).float()
 
-human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2)
+human_train, human_val, nao_train, nao_val = train_test_split(human, nao, test_size=0.2, random_state=1000)
 human_train = torch.from_numpy(human_train).float()
 human_val = torch.from_numpy(human_val).float()
 nao_train = torch.from_numpy(nao_train).float()
@@ -113,7 +113,7 @@ except:
 
 best_search = None
 best_val_error = np.inf
-num_search = 1000
+num_search = 200
 for i in range(num_search):
     lr = 10 ** random.uniform(*lr_range)
     reg = 10 ** random.uniform(*reg_range)
@@ -132,3 +132,4 @@ for i in range(num_search):
     file.writelines(', '.join(map(str, [lr, af, reg, hidden_layers_str, net.min_val_loss])) + '\n')
 
 print('Best hyper-parameter option: ', best_search)
+print('Min validation loss: ', best_val_error)
