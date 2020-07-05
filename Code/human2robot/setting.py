@@ -15,12 +15,13 @@ NORMALIZE   = True          # If normalize dataset
 DECOMPOSE   = False         # If use PCA to decompose dataset
 
 MAX_EPOCH   = 5000          # The maximum training epoch
-AF          = 'leaky_relu'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
+AF          = 'relu'        # Activation function ['leaky_relu', 'relu', 'sigmoid', 'tanh']
 N_HIDDEN    = [128, 64]     # The number of nodes in the hidden layers
-L_RATE      = 0.07          # The learning rate of the network
+L_RATE      = 0.131718496669    # The learning rate of the network
+REG         = 0.0093777674026   # The weight decay 
 DO_RATE     = 0.21          # Dropout rate of the hidden layer
-STOP_EARLY  = True          # If stop earlier based on the validation error
-STOP_RATE   = 0.01          # If the validation error is this ratio higher than the minimum error, the training would stop
+# STOP_EARLY  = True          # If stop earlier based on the validation error
+# STOP_RATE   = 0.01          # If the validation error is this ratio higher than the minimum error, the training would stop
 
 SAVE_DATA   = False         # If save the shuffled human gesture dataset
 PATHNAME    = "dataset/"
