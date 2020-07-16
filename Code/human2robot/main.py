@@ -79,12 +79,12 @@ if __name__ == "__main__":
     human_train_save = human_scaler.inverse_transform(human_train); np.savetxt("shuffled_human_train.txt", human_train_save)
     human_val_save = human_scaler.inverse_transform(human_val);     np.savetxt("shuffled_human_train.txt", human_val_save)
     human_test_save = human_scaler.inverse_transform(human_test);   np.savetxt("shuffled_human_train.txt", human_test_save)
-    nao_train_save = human_scaler.inverse_transform(nao_train);     np.savetxt("shuffled_human_train.txt", nao_train_save)
-    nao_val_save = human_scaler.inverse_transform(nao_val);         np.savetxt("shuffled_human_train.txt", nao_val_save)
-    nao_test_save = human_scaler.inverse_transform(nao_test);       np.savetxt("shuffled_human_train.txt", nao_test_save)
+    nao_train_save = nao_scaler.inverse_transform(nao_train);       np.savetxt("shuffled_human_train.txt", nao_train_save)
+    nao_val_save = nao_scaler.inverse_transform(nao_val);           np.savetxt("shuffled_human_train.txt", nao_val_save)
+    nao_test_save = nao_scaler.inverse_transform(nao_test);         np.savetxt("shuffled_human_train.txt", nao_test_save)
 
     # Define Neural Network model and train
-    net = Net(n_input=np.size(human, 1), n_hidden=N_HIDDEN, n_output=np.size(nao, 1),
-              AF=AF, dropout_rate=DO_RATE, learning_rate=L_RATE, reg=REG, ues_lr_scheduler=False)
-    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch)
+    net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
+              AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
+    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=1000, stop=False)
     net.__plot__()
