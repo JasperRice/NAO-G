@@ -118,7 +118,7 @@ class Net(nn.Module):
             tst_errors.append(self.test_loss)
         return mean(val_errors), mean(tst_errors)
 
-    def __train__(self, human_train, human_val, nao_train, nao_val, max_epoch=1500, stop=False, stop_rate=0.01):
+    def __train__(self, human_train, human_val, nao_train, nao_val, max_epoch=1500, stop=False, stop_rate=0.01, scaler=None, decomposer=None):
         self.train_loss_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
