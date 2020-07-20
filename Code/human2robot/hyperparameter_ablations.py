@@ -71,6 +71,7 @@ human = readCSV('dataset/Human_overlap.csv'); human = np.delete(human, fingerInd
 human_test = readCSV('dataset/Human_test.csv'); human_test = np.delete(human_test, fingerIndex, axis=1)
 nao = readCSV('dataset/NAO_overlap.csv')
 nao_test = readCSV('dataset/NAO_test.csv')
+nao_test_ = torch.from_numpy(nao_test).float()
 if np.size(human, 0) != np.size(nao, 0): sys.exit("Numbers of input and target are different.")
 
 human, human_scaler = normalize(human)
@@ -82,12 +83,11 @@ __human_test__ = torch.from_numpy(__human_test__).float()
 
 num_try = 100
 results = {}
-ablation = 'reg'
+ablation = 'denormalized_reg'
 file_train = open('ablations_'+ablation+'_results_train.csv', 'w')
 file_val = open('ablations_'+ablation+'_results_val.csv', 'w')
 file_test = open('ablations_'+ablation+'_results_test.csv', 'w')
 options = [0, 0.005450020325607934]
-# options = np.logspace(-5, -1, num=20, endpoint=False)
 for opt in options:
     results[opt] = {'train':[], 'val': [], 'test': []}
     for i in range(num_try):
@@ -99,42 +99,19 @@ for opt in options:
 
         net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
                   AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=opt)
-        net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=5000, stop=True, stop_rate=0.01)
+        net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=5000, stop=True, stop_rate=0.01, scaler=nao_scaler)
 
         net.eval()
         nao_test_result = net(__human_test__).detach().numpy()
         try: nao_test_result = nao_scaler.inverse_transform(nao_test_result)
         except: pass
-        test_loss = net.loss_func(nao_test_result, nao_test).item()
+        nao_test_result = torch.from_numpy(nao_test_result).float()
+        test_loss_denormalized = net.loss_func(nao_test_result, nao_test_).item()
         
-        print(float(net.min_val_loss), float(test_loss))
-        results[opt]['train'].append(float(net.train_loss_list[-1]))
-        results[opt]['val'].append(float(net.min_val_loss))
-        results[opt]['test'].append(float(test_loss))
+        print(float(net.min_val_loss_denormalized), float(test_loss_denormalized))
+        results[opt]['train'].append(float(net.train_loss_denormalized))
+        results[opt]['val'].append(float(net.min_val_loss_denormalized))
+        results[opt]['test'].append(float(test_loss_denormalized))
     file_train.writelines(', '.join(map(str, results[opt]['train'])) + '\n')
     file_val.writelines(', '.join(map(str, results[opt]['val'])) + '\n')
     file_test.writelines(', '.join(map(str, results[opt]['test'])) + '\n')
-
-# x_ticks_labels = dp_options
-fig, ax = plt.subplots(1,1)
-for mode in ['val', 'test']:
-    y = []
-    e = []
-    for dp in options:
-        res_arr = np.array(results[dp][mode])
-        y.append(np.mean(res_arr))
-        e.append(np.std(res_arr))
-
-    x = options
-    y = np.array(y)
-    e = np.array(e)
-
-    ax.errorbar(x, y, e, linestyle='--', marker='.', fmt='-o', label=mode)
-    # ax.set_xticks(x) # Set number of ticks for x-axis
-    # ax.set_xticklabels(x_ticks_labels) # Set ticks labels for x-axis rotation='vertical'
-
-plt.xscale('log')
-plt.xlabel("Learning rate")
-plt.ylabel("Error with standard deviation")
-plt.legend()
-plt.show()
