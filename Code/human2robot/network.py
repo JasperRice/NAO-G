@@ -119,14 +119,16 @@ class Net(nn.Module):
         return mean(val_errors), mean(tst_errors)
 
     def __train__(self, human_train, human_val, nao_train, nao_val, max_epoch=1500, stop=False, stop_rate=0.01, scaler=None, decomposer=None):
-        nao_train_ = nao_train
-        nao_val_ = nao_val
+        nao_train_ = nao_train.detach().numpy()
+        nao_val_ = nao_val.detach().numpy()
         if decomposer != None:
             nao_train_ = decomposer.inverse_transform(nao_train_)
             nao_val_ = decomposer.inverse_transform(nao_val_)
         if scaler != None:
             nao_train_ = scaler.inverse_transform(nao_train_)
             nao_val_ = scaler.inverse_transform(nao_val_)
+        nao_train_ = torch.from_numpy(nao_train_).float()
+        nao_val_ = torch.from_numpy(nao_val_).float()
 
         self.train_loss_list = []
         self.val_loss_list = []
@@ -138,11 +140,13 @@ class Net(nn.Module):
             self.optimizer.zero_grad()
             train_loss = self.loss_func(self(human_train), nao_train)
             self.train_loss_list.append(train_loss.item())
-            
-            nao_train_out_ = self(human_train)
+
+            # Calculate denormalized training loss
+            nao_train_out_ = self(human_train).detach().numpy()
             if decomposer != None: nao_train_out_ = decomposer.inverse_transform(nao_train_out_)
             if scaler != None: nao_train_out_ = scaler.inverse_transform(nao_train_out_)
-            self.train_loss_denormalized = self.loss_func(nao_train_out_, nao_train_)
+            nao_train_out_ = torch.from_numpy(nao_train_out_).float()
+            self.train_loss_denormalized = self.loss_func(nao_train_out_, nao_train_).item()
 
             train_loss.backward()
             self.optimizer.step()
@@ -156,9 +160,12 @@ class Net(nn.Module):
                     break
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss.item()
-                    nao_out_ = self(human_val)
+
+                    # Calculate denormalized validation loss
+                    nao_out_ = self(human_val).detach().numpy()
                     if decomposer != None: nao_out_ = decomposer.inverse_transform(nao_out_)
                     if scaler != None: nao_out_ = scaler.inverse_transform(nao_out_)
+                    nao_out_ = torch.from_numpy(nao_out_).float()
                     self.min_val_loss_denormalized = self.loss_func(nao_out_, nao_val_).item()
 
     
