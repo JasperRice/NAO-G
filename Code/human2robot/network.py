@@ -119,6 +119,15 @@ class Net(nn.Module):
         return mean(val_errors), mean(tst_errors)
 
     def __train__(self, human_train, human_val, nao_train, nao_val, max_epoch=1500, stop=False, stop_rate=0.01, scaler=None, decomposer=None):
+        nao_train_ = nao_train
+        nao_val_ = nao_val
+        if decomposer != None:
+            nao_train_ = decomposer.inverse_transfrom(nao_train_)
+            nao_val_ = decomposer.inverse_transfrom(nao_val_)
+        if scaler != None:
+            nao_train_ = scaler.inverse_transfrom(nao_train_)
+            nao_val_ = scaler.inverse_transfrom(nao_val_)
+
         self.train_loss_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
@@ -129,6 +138,12 @@ class Net(nn.Module):
             self.optimizer.zero_grad()
             train_loss = self.loss_func(self(human_train), nao_train)
             self.train_loss_list.append(train_loss.item())
+            
+            nao_train_out_ = self(human_train)
+            if decomposer != None: nao_train_out_ = decomposer.inverse_transfrom(nao_train_out_)
+            if scaler != None: nao_train_out_ = scaler.inverse_transfrom(nao_train_out_)
+            self.train_loss_denormalized = self.loss_func(nao_train_out_, nao_train_)
+
             train_loss.backward()
             self.optimizer.step()
 
@@ -141,6 +156,10 @@ class Net(nn.Module):
                     break
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss.item()
+                    nao_out_ = self(human_val)
+                    if decomposer != None: nao_out_ = decomposer.inverse_transfrom(nao_out_)
+                    if scaler != None: nao_out_ = scaler.inverse_transfrom(nao_out_)
+                    self.min_val_loss_denormalized = self.loss_func(nao_out_, nao_val_).item()
 
     
     def __test__(self, human_test, nao_test):
