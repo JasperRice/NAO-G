@@ -122,11 +122,11 @@ class Net(nn.Module):
         nao_train_ = nao_train
         nao_val_ = nao_val
         if decomposer != None:
-            nao_train_ = decomposer.inverse_transfrom(nao_train_)
-            nao_val_ = decomposer.inverse_transfrom(nao_val_)
+            nao_train_ = decomposer.inverse_transform(nao_train_)
+            nao_val_ = decomposer.inverse_transform(nao_val_)
         if scaler != None:
-            nao_train_ = scaler.inverse_transfrom(nao_train_)
-            nao_val_ = scaler.inverse_transfrom(nao_val_)
+            nao_train_ = scaler.inverse_transform(nao_train_)
+            nao_val_ = scaler.inverse_transform(nao_val_)
 
         self.train_loss_list = []
         self.val_loss_list = []
@@ -140,8 +140,8 @@ class Net(nn.Module):
             self.train_loss_list.append(train_loss.item())
             
             nao_train_out_ = self(human_train)
-            if decomposer != None: nao_train_out_ = decomposer.inverse_transfrom(nao_train_out_)
-            if scaler != None: nao_train_out_ = scaler.inverse_transfrom(nao_train_out_)
+            if decomposer != None: nao_train_out_ = decomposer.inverse_transform(nao_train_out_)
+            if scaler != None: nao_train_out_ = scaler.inverse_transform(nao_train_out_)
             self.train_loss_denormalized = self.loss_func(nao_train_out_, nao_train_)
 
             train_loss.backward()
@@ -157,8 +157,8 @@ class Net(nn.Module):
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss.item()
                     nao_out_ = self(human_val)
-                    if decomposer != None: nao_out_ = decomposer.inverse_transfrom(nao_out_)
-                    if scaler != None: nao_out_ = scaler.inverse_transfrom(nao_out_)
+                    if decomposer != None: nao_out_ = decomposer.inverse_transform(nao_out_)
+                    if scaler != None: nao_out_ = scaler.inverse_transform(nao_out_)
                     self.min_val_loss_denormalized = self.loss_func(nao_out_, nao_val_).item()
 
     
