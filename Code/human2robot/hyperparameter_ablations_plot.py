@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-ablation = 'lr'
+ablation = 'denormalized_pca'
 file_train = open('ablations_'+ablation+'_results_train.csv', 'r')
 file_val = open('ablations_'+ablation+'_results_val.csv', 'r')
 file_test = open('ablations_'+ablation+'_results_test.csv', 'r')
-x = np.logspace(-5, -1, num=20, endpoint=False)
+x = [True, False]
 
 train = [[] for _ in range(len(x))];    y_train = [];   e_train = [];
 val = [[] for _ in range(len(x))];      y_val = [];     e_val = []
@@ -40,8 +40,10 @@ end = len(x)
 ax.errorbar(x[start:end], y_train[start:end], e_train[start:end], linestyle='--', marker='.', fmt='-o', label='Training Error')
 ax.errorbar(x[start:end], y_val[start:end], e_val[start:end], linestyle='--', marker='.', fmt='-o', label='Validation Error')
 ax.errorbar(x[start:end], y_test[start:end], e_test[start:end], linestyle='--', marker='.', fmt='-o', label='Test Error')
-plt.xscale('log')
-plt.xlabel("Regularization strength for weight decay")
-plt.ylabel("Error with standard deviation")
-plt.legend(loc='center right', bbox_to_anchor=(1, 0.25))
+# plt.xscale('log')
+labels = ['With PCA', 'Without PCA']
+plt.xticks(x[start:end], labels[start:end])
+plt.xlabel("With or without PCA on Human Poses")
+plt.ylabel("Error with Standard Deviation / rad")
+plt.legend(loc='center right', bbox_to_anchor=(1, 0.3))
 plt.show()
