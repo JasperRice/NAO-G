@@ -133,6 +133,7 @@ class Net(nn.Module):
         self.train_loss_list = []
         self.train_loss_denormalized_list = []
         self.val_loss_list = []
+        self.val_loss_denormalized_list = []
         self.min_val_loss = np.inf
         for epoch in range(max_epoch):
             self.train()
@@ -156,19 +157,22 @@ class Net(nn.Module):
             self.eval()
             val_loss = self.loss_func(self(human_val), nao_val)
             self.val_loss_list.append(val_loss.item())
+
+            # Calculate denormalized validation loss
+            nao_out_ = self(human_val).detach().numpy()
+            if decomposer != None: nao_out_ = decomposer.inverse_transform(nao_out_)
+            if scaler != None: nao_out_ = scaler.inverse_transform(nao_out_)
+            nao_out_ = torch.from_numpy(nao_out_).float()
+            self.val_loss_denormalized = self.loss_func(nao_out_, nao_val_).item()
+            self.val_loss_denormalized_list.append(self.val_loss_denormalized)
+
             if epoch > 150 and stop:
                 if val_loss - self.min_val_loss > stop_rate * self.min_val_loss:
                     print('=====> Terminate at epoch: {}'.format(epoch))
                     break
                 elif val_loss < self.min_val_loss:
                     self.min_val_loss = val_loss.item()
-
-                    # Calculate denormalized validation loss
-                    nao_out_ = self(human_val).detach().numpy()
-                    if decomposer != None: nao_out_ = decomposer.inverse_transform(nao_out_)
-                    if scaler != None: nao_out_ = scaler.inverse_transform(nao_out_)
-                    nao_out_ = torch.from_numpy(nao_out_).float()
-                    self.min_val_loss_denormalized = self.loss_func(nao_out_, nao_val_).item()
+                    self.min_val_loss_denormalized = self.val_loss_denormalized
 
     
     def __test__(self, human_test, nao_test):
