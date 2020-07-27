@@ -188,7 +188,7 @@ class Net(nn.Module):
             plt.scatter(list(range(len(self.train_loss_list))), self.train_loss_list, s=1, c='blue')
             plt.scatter(list(range(len(self.val_loss_list))), self.val_loss_list, s=1, c='orange')
         plt.xlabel('Epoch')
-        plt.ylabel('Mean Squared Error')
+        plt.ylabel('Root Mean Square Error / rad') if denormalized else plt.ylabel('Root Mean Square Error')
         plt.legend(['Training error', 'Validation error'])
         plt.show()
         if save:
