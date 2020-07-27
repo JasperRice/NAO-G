@@ -179,10 +179,14 @@ class Net(nn.Module):
         self.eval()
         self.test_loss = self.loss_func(self(human_test), nao_test).item()
 
-    def __plot__(self, save=False):
+    def __plot__(self, save=False, denormalized=False):
         plt.figure()
-        plt.scatter(list(range(len(self.train_loss_list))), self.train_loss_list, s=1, c='blue')
-        plt.scatter(list(range(len(self.val_loss_list))), self.val_loss_list, s=1, c='orange')
+        if denormalized: 
+            plt.scatter(list(range(len(self.train_loss_denormalized_list))), self.train_loss_denormalized_list, s=1, c='blue')
+            plt.scatter(list(range(len(self.val_loss_denormalized_list))), self.val_loss_denormalized_list, s=1, c='orange')
+        else:
+            plt.scatter(list(range(len(self.train_loss_list))), self.train_loss_list, s=1, c='blue')
+            plt.scatter(list(range(len(self.val_loss_list))), self.val_loss_list, s=1, c='orange')
         plt.xlabel('Epoch')
         plt.ylabel('Mean Squared Error')
         plt.legend(['Training error', 'Validation error'])
