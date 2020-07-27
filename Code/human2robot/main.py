@@ -86,7 +86,7 @@ if __name__ == "__main__":
     # Define Neural Network model and train
     net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
               AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
-    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=1000, stop=False)
+    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=5000, stop=False)
     net.__plot__()
 
     # Execute test results on NAO
