@@ -131,6 +131,7 @@ class Net(nn.Module):
         nao_val_ = torch.from_numpy(nao_val_).float()
 
         self.train_loss_list = []
+        self.train_loss_denormalized_list = []
         self.val_loss_list = []
         self.min_val_loss = np.inf
         for epoch in range(max_epoch):
@@ -147,6 +148,7 @@ class Net(nn.Module):
             if scaler != None: nao_train_out_ = scaler.inverse_transform(nao_train_out_)
             nao_train_out_ = torch.from_numpy(nao_train_out_).float()
             self.train_loss_denormalized = self.loss_func(nao_train_out_, nao_train_).item()
+            self.train_loss_denormalized_list.append(self.train_loss_denormalized)
 
             train_loss.backward()
             self.optimizer.step()
