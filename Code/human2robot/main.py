@@ -23,6 +23,37 @@ except: pass
 from network import Net, numpy2tensor
 from setting import *
 
+def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None):
+    for joint in joints:
+        n = len(sequence[joint])
+        angles = sequence[joint]
+        vel = [(angles[i+1] - angles[i]) / h for i in range(n-1)]
+
+        fig, axs = plt.subplots(2, sharex=True)
+        axs[0].plot(angles, '-', c='blue')
+        axs[0].hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
+                      xmin=0, xmax=n-1, linestyles='dashed')
+        axs[0].xlabel('Timestamp')
+        axs[0].ylabel('Joint angle / rad')
+        axs[0].legend([jointNames[joint]])
+
+        axs[1].plot(vel, '-', c='blue')
+        plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
+                    xmin=0, xmax=n-2, linestyles='dashed')
+        axs[1].xlabel('Timestamp')
+        axs[1].ylabel('Joint angular velocity / rad/s')
+        axs[1].legend([jointNames[joint]])
+        if filename: pass
+        else: plt.show()
+
+def jerk(motions, f):
+    joints_sequence = motions.T
+    J = 0.0
+    for S in joints_sequence:
+        N = len(S)
+        for i in range(N-3):
+            J += ((S[i+3] - 3.0*S[i+2] + 3.0*S[i+1] - S[i]) * (f**3))**2
+    return J / (2*f*(N-3))
 
 if __name__ == "__main__":
     # Reproducibility by setting a seed
@@ -57,6 +88,7 @@ if __name__ == "__main__":
     human_test = readCSV('dataset/Human_test.csv'); human_test = np.delete(human_test, fingerIndex, axis=1)
     nao = readCSV('dataset/NAO_overlap.csv')
     nao_test = readCSV('dataset/NAO_test.csv')
+    nao_test_copy = nao_test
     if np.size(human, 0) != np.size(nao, 0):
         sys.exit("Numbers of input and target are different.")
 
@@ -86,25 +118,52 @@ if __name__ == "__main__":
     # Define Neural Network model and train
     net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
               AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
-    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=1000, stop=False)
-    net.__plot__()
-
-    # Execute test results on NAO
+    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=5000, stop=True, scaler=nao_scaler)
+    net.__plot__(denormalized=True)
     net.eval()
+
+    # Evaluate the Test Error
     nao_test_out = net(human_test_torch).detach().numpy()
     try: nao_test_out = nao_pca.inverse_transform(nao_test_out)
     except NameError: pass
     try: nao_test_out = nao_scaler.inverse_transform(nao_test_out)
     except NameError: pass
-    raw_input("Press ENTER to execute the test results.")
-    try: execGesture(P_NAO_IP, P_NAO_PORT, nao_test_out.tolist())
-    except: execGesture(NAO_IP, NAO_PORT, nao_test_out.tolist())
+    print("RMSE for test data: {} rad.".format(net.loss_func(torch.from_numpy(nao_test_out).float(), torch.from_numpy(nao_test_copy).float()).item()))
 
-    # Execute test data (ground truth) on NAO
-    try: nao_test = nao_pca.inverse_transform(nao_test)
+    Execute_Test_on_NAO = False
+    if Execute_Test_on_NAO:
+        # Execute test results on NAO
+        raw_input("Press ENTER to execute the test results.")
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_test_out.tolist())
+        except: execGesture(NAO_IP, NAO_PORT, nao_test_out.tolist())
+
+        # Execute test data (ground truth) on NAO
+        try: nao_test = nao_pca.inverse_transform(nao_test)
+        except NameError: pass
+        try: nao_test = nao_scaler.inverse_transform(nao_test)
+        except NameError: pass
+        raw_input("Press ENTER to execute the ground truth.")
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_test.tolist())
+        except: execGesture(NAO_IP, NAO_PORT, nao_test.tolist())
+
+    # Plot motion sequence on joints
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
+    h = 1.0 / 60.0 * 5.0
+    talk_play = human_interface.jointAngles[:500]                
+    talk_play = np.delete(np.array(talk_play), fingerIndex, axis=1)
+    try: talk_play = human_scaler.transform(talk_play)
     except NameError: pass
-    try: nao_test = nao_scaler.inverse_transform(nao_test)
+    try: talk_play = human_pca.transform(talk_play)
     except NameError: pass
-    raw_input("Press ENTER to execute the ground truth.")
-    try: execGesture(P_NAO_IP, P_NAO_PORT, nao_test.tolist())
-    except: execGesture(NAO_IP, NAO_PORT, nao_test.tolist())
+    talk_play_torch = torch.from_numpy(talk_play).float()
+    talk_play_out = net(talk_play_torch).detach().numpy()
+    try: talk_play_out = nao_pca.inverse_transform(talk_play_out)
+    except NameError: pass
+    try: talk_play_out = nao_scaler.inverse_transform(talk_play_out)
+    except NameError: pass
+    # Before Smoothing
+    print("Jerkiness before smoothing: {}".format(jerk(talk_play_out, 1.0 / h)))
+    plot_joint_sequence([5, 20], nao_interface.joint_names, talk_play_out.T, nao_interface.limits, h)
+
+    # Smoothing
+    
