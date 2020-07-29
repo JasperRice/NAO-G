@@ -82,6 +82,7 @@ if __name__ == "__main__":
     for fingerJoint in fingerJointList:
         index = human_interface.getStartAngleIndex(fingerJoint)
         fingerIndex.extend([i for i in range(index, index+3)])
+    fingerIndex.extend([0, 1, 2])
 
     # Read traing and test dataset
     human = readCSV('dataset/Human_overlap.csv'); human = np.delete(human, fingerIndex, axis=1)
@@ -120,8 +121,11 @@ if __name__ == "__main__":
               AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
     net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=5000, stop=True, scaler=nao_scaler)
     net.__plot__(denormalized=True)
-    net.eval()
+    save_model = True
+    if save_model: torch.save(net, "net.txt")
 
+    net.eval()
+    
     # Evaluate the Test Error
     nao_test_out = net(human_test_torch).detach().numpy()
     try: nao_test_out = nao_pca.inverse_transform(nao_test_out)
