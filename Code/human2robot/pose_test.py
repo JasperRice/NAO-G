@@ -72,4 +72,11 @@ if __name__ == "__main__":
 
     # Forward pass human poses to the model
     nao_pose_test_torch = net(human_pose_test_torch)
-    
+    nao_pose_test = nao_pose_test_torch.detach().numpy()
+    try: nao_pose_test = nao_pca.inverse_transform(nao_pose_test)
+    except NameError: pass
+    try: nao_pose_test = nao_scaler.inverse_transform(nao_pose_test)
+    except NameError: pass
+    raw_input("Press ENTER to execute the test results.")
+    try: execGesture(P_NAO_IP, P_NAO_PORT, nao_pose_test.tolist())
+    except: execGesture(NAO_IP, NAO_PORT, nao_pose_test.tolist())
