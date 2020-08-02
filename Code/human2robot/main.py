@@ -117,12 +117,15 @@ if __name__ == "__main__":
     nao_test_save = nao_scaler.inverse_transform(nao_test);         np.savetxt("shuffled_nao_test.txt", nao_test_save)
 
     # Define Neural Network model and train
-    net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
-              AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
-    net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=5000, stop=True, scaler=nao_scaler)
-    net.__plot__(denormalized=True)
+    load_model = True
     save_model = True
-    if save_model: torch.save(net, "net.txt")
+    if load_model: net = torch.load("net.txt")
+    else:
+        net = Net(n_input=np.size(human, 1), n_hidden=[128, 32], n_output=np.size(nao, 1),
+                AF='relu', dropout_rate=0.0765078199812, learning_rate=0.0002296913506475621, reg=0.005450020325607934, ues_lr_scheduler=False)
+        net.__train__(human_train_torch, human_val_torch, nao_train_torch, nao_val_torch, max_epoch=5000, stop=True, scaler=nao_scaler)
+        net.__plot__(denormalized=True)
+        if save_model: torch.save(net, "net.txt")
 
     net.eval()
     
@@ -149,25 +152,3 @@ if __name__ == "__main__":
         raw_input("Press ENTER to execute the ground truth.")
         try: execGesture(P_NAO_IP, P_NAO_PORT, nao_test.tolist())
         except: execGesture(NAO_IP, NAO_PORT, nao_test.tolist())
-
-    # Plot motion sequence on joints
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
-    h = 1.0 / 60.0 * 5.0
-    talk_play = human_interface.jointAngles[:500]                
-    talk_play = np.delete(np.array(talk_play), fingerIndex, axis=1)
-    try: talk_play = human_scaler.transform(talk_play)
-    except NameError: pass
-    try: talk_play = human_pca.transform(talk_play)
-    except NameError: pass
-    talk_play_torch = torch.from_numpy(talk_play).float()
-    talk_play_out = net(talk_play_torch).detach().numpy()
-    try: talk_play_out = nao_pca.inverse_transform(talk_play_out)
-    except NameError: pass
-    try: talk_play_out = nao_scaler.inverse_transform(talk_play_out)
-    except NameError: pass
-    # Before Smoothing
-    print("Jerkiness before smoothing: {}".format(jerk(talk_play_out, 1.0 / h)))
-    plot_joint_sequence([5, 20], nao_interface.joint_names, talk_play_out.T, nao_interface.limits, h)
-
-    # Smoothing
-    
