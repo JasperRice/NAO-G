@@ -34,7 +34,7 @@ def cutJointAngles(IP, PORT, JOINT):
     return JOINT.tolist()
 
 
-def execGesture(IP, PORT, JOINT, TIME=None):
+def execGesture(IP, PORT, JOINT, TIME=None, Interrupt=True):
     """Execute a static gesture on virtual or physical NAO robot
     
     :param IP: Adress IP of the NAO robot
@@ -60,7 +60,7 @@ def execGesture(IP, PORT, JOINT, TIME=None):
         i += 1
         print("=====> Motion index: %d" % i)
         motion.angleInterpolation("Joints", J, T, True)
-        # raw_input("\tPress ENTER to continue ...")
+        if Interrupt: raw_input("\tPress ENTER to continue ...")
 
 
 if __name__ == "__main__":
