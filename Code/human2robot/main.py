@@ -23,37 +23,6 @@ except: pass
 from network import Net, numpy2tensor
 from setting import *
 
-def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None):
-    for joint in joints:
-        n = len(sequence[joint])
-        angles = sequence[joint]
-        vel = [(angles[i+1] - angles[i]) / h for i in range(n-1)]
-
-        fig, axs = plt.subplots(2, sharex=True)
-        axs[0].plot(angles, '-', c='blue')
-        axs[0].hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
-                      xmin=0, xmax=n-1, linestyles='dashed')
-        axs[0].xlabel('Timestamp')
-        axs[0].ylabel('Joint angle / rad')
-        axs[0].legend([jointNames[joint]])
-
-        axs[1].plot(vel, '-', c='blue')
-        plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
-                    xmin=0, xmax=n-2, linestyles='dashed')
-        axs[1].xlabel('Timestamp')
-        axs[1].ylabel('Joint angular velocity / rad/s')
-        axs[1].legend([jointNames[joint]])
-        if filename: pass
-        else: plt.show()
-
-def jerk(motions, f):
-    joints_sequence = motions.T
-    J = 0.0
-    for S in joints_sequence:
-        N = len(S)
-        for i in range(N-3):
-            J += ((S[i+3] - 3.0*S[i+2] + 3.0*S[i+1] - S[i]) * (f**3))**2
-    return J / (2*f*(N-3))
 
 if __name__ == "__main__":
     # Reproducibility by setting a seed
