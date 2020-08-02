@@ -24,7 +24,8 @@ from network import Net, numpy2tensor
 from setting import *
 
 
-def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None):
+def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None, jerkness=None):
+    scale = 1.0 / 3.0
     for joint in joints:
         n = len(sequence[joint])
         angles = sequence[joint]
@@ -34,16 +35,25 @@ def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None):
         axs[0].plot(angles, '-', c='blue')
         axs[0].hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
                       xmin=0, xmax=n-1, linestyles='dashed')
-        axs[0].xlabel('Timestamp')
-        axs[0].ylabel('Joint angle / rad')
+        width = limits['maxAngle'][joint] - limits['minAngle'][joint]
+
+        if jerkness: axs[0].set_title("Jerkiness: {}".format(jerkness))
+        axs[0].set_ylabel('Joint angle / rad')
+        axs[0].set_ylim([limits['minAngle'][joint]-scale*width, limits['maxAngle'][joint]+scale*width])
         axs[0].legend([jointNames[joint]])
 
+        #####
         axs[1].plot(vel, '-', c='blue')
         plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
                     xmin=0, xmax=n-2, linestyles='dashed')
-        axs[1].xlabel('Timestamp')
-        axs[1].ylabel('Joint angular velocity / rad/s')
+        width = 2*limits['maxChange'][joint]
+
+        axs[1].set_xlabel('Timestamp')
+        axs[1].set_ylabel('Joint angular velocity / rad/s')
+        axs[1].set_ylim([-limits['maxChange'][joint]-scale*width, limits['maxChange'][joint]+scale*width])
         axs[1].legend([jointNames[joint]])
+        
+        #####
         if filename: pass
         else: plt.show()
 
@@ -98,42 +108,31 @@ if __name__ == "__main__":
     # Load model
     net = torch.load("net.txt")
     net.eval()
-    
-    # Load human sequence
-    human_sequence = readCSV('dataset/Human_Type_Hands_Wide.csv'); human_sequence = np.delete(human_sequence, fingerIndex, axis=1)
-    human_sequence = human_scaler.transform(human_sequence)
-    human_sequence_torch = torch.from_numpy(human_sequence).float()
 
-    # Forward pass human poses to the model
-    nao_sequence_torch = net(human_sequence_torch)
-    nao_sequence = nao_sequence_torch.detach().numpy()
+
+    # Plot motion sequence on joints
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); h = 1.0 / 60.0 * 5.0
+    human_sequence = human_interface.jointAngles[:500]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
+    try: human_sequence = human_scaler.transform(human_sequence)
+    except NameError: pass
+    try: human_sequence = human_pca.transform(human_sequence)
+    except NameError: pass
+
+    human_sequence_torch = torch.from_numpy(human_sequence).float()
+    nao_sequence = net(human_sequence_torch).detach().numpy()
+
     try: nao_sequence = nao_pca.inverse_transform(nao_sequence)
     except NameError: pass
     try: nao_sequence = nao_scaler.inverse_transform(nao_sequence)
     except NameError: pass
-    raw_input("Press ENTER to execute the test results.")
-    try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist())
-    except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist())
 
+    # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist(), TIME=1.0/h, Interrupt=False)
+    # except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist(), TIME=1.0/h, Interrupt=False)
 
-    # Plot motion sequence on joints
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh')
-    h = 1.0 / 60.0 * 5.0
-    talk_play = human_interface.jointAngles[:500]                
-    talk_play = np.delete(np.array(talk_play), fingerIndex, axis=1)
-    try: talk_play = human_scaler.transform(talk_play)
-    except NameError: pass
-    try: talk_play = human_pca.transform(talk_play)
-    except NameError: pass
-    talk_play_torch = torch.from_numpy(talk_play).float()
-    talk_play_out = net(talk_play_torch).detach().numpy()
-    try: talk_play_out = nao_pca.inverse_transform(talk_play_out)
-    except NameError: pass
-    try: talk_play_out = nao_scaler.inverse_transform(talk_play_out)
-    except NameError: pass
     # Before Smoothing
-    print("Jerkiness before smoothing: {}".format(jerk(talk_play_out, 1.0 / h)))
-    plot_joint_sequence([5, 20], nao_interface.joint_names, talk_play_out.T, nao_interface.limits, h)
+    print("Jerkiness before smoothing: {}".format(jerk(nao_sequence, 1.0 / h)))
+    jerkness = jerk(nao_sequence, 1.0/h)
+    plot_joint_sequence([5, 20], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, h)
 
     # Smoothing
     
