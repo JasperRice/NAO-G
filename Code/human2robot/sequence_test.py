@@ -113,6 +113,7 @@ if __name__ == "__main__":
 
     # Plot motion sequence on joints
     human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); h = 1.0 / 60.0 * 5
+    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); h = 1.0 / 60.0
     start = 0; end = 500
     human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 
 
     # Constrained Optimization
-    constrained_optimization = False
+    constrained_optimization = True
     if constrained_optimization:
         all_limits = nao_interface.limits
         nao_sequence_smoothed_optimized = nao_sequence_smoothed.T
@@ -171,8 +172,8 @@ if __name__ == "__main__":
                 'maxChange':    all_limits['maxChange'][i]
             }
             cons = constraints(x, limits, h)
-            args = (np.eye(np.size(x)) * 5.0,
-                    np.eye(np.size(x)-1) * 0.1,
+            args = (np.eye(np.size(x)) * 5.0, # 5.0
+                    np.eye(np.size(x)-1) * 10, # 0.1
                     h,
                     x
                 )
@@ -180,5 +181,5 @@ if __name__ == "__main__":
             nao_sequence_smoothed_optimized[i] = sol.x
         nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
         print("Jerkiness after smoothing and optimization: {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/h)))
-        plot_joint_sequence([2], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, h)
+        plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, h, title="After Smoothing & Optimization", filename="After_Smoothing_Optimization")
         
