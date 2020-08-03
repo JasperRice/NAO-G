@@ -164,7 +164,7 @@ if __name__ == "__main__":
         all_limits = nao_interface.limits
         nao_sequence_smoothed_optimized = nao_sequence_smoothed.T
         for i, x in enumerate(nao_sequence_smoothed_optimized):
-            print("Optimizing joint {}.".format(i))
+            # print("Optimizing joint {}.".format(i))
             x0 = x
             limits = {
                 'minAngle':     all_limits['minAngle'][i],
@@ -172,12 +172,13 @@ if __name__ == "__main__":
                 'maxChange':    all_limits['maxChange'][i]
             }
             cons = constraints(x, limits, h)
+            print(len(cons))
             args = (np.eye(np.size(x)) * 5.0, # 5.0
-                    np.eye(np.size(x)-1) * 10, # 0.1
+                    np.eye(np.size(x)-1) * 0.1, # 0.1
                     h,
                     x
                 )
-            sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': True})
+            sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': False})
             nao_sequence_smoothed_optimized[i] = sol.x
         nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
         print("Jerkiness after smoothing and optimization: {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/h)))
