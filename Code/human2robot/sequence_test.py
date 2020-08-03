@@ -24,7 +24,7 @@ from network import Net, numpy2tensor
 from setting import *
 
 
-def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None, jerkness=None):
+def plot_joint_sequence(joints, jointNames, sequence, limits, h, start=None, end=None, filename=None):
     scale = 1.0 / 3.0
     for joint in joints:
         n = len(sequence[joint])
@@ -37,7 +37,7 @@ def plot_joint_sequence(joints, jointNames, sequence, limits, h, filename=None, 
                       xmin=0, xmax=n-1, linestyles='dashed')
         width = limits['maxAngle'][joint] - limits['minAngle'][joint]
 
-        if jerkness: axs[0].set_title("Jerkiness: {}".format(jerkness))
+        axs[0].set_title("Time Interval: %.4f" % h, size=11)
         axs[0].set_ylabel('Joint angle / rad')
         axs[0].set_ylim([limits['minAngle'][joint]-scale*width, limits['maxAngle'][joint]+scale*width])
         axs[0].legend([jointNames[joint]])
@@ -111,8 +111,9 @@ if __name__ == "__main__":
 
 
     # Plot motion sequence on joints
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); h = 1.0 / 60.0 * 5.0
-    human_sequence = human_interface.jointAngles[:500]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); h = 1.0 / 60.0
+    start = 0; end = 500
+    human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
     except NameError: pass
     try: human_sequence = human_pca.transform(human_sequence)
@@ -126,13 +127,53 @@ if __name__ == "__main__":
     try: nao_sequence = nao_scaler.inverse_transform(nao_sequence)
     except NameError: pass
 
+    # Before Smoothing
+    print("Jerkiness before smoothing: {}".format(jerk(nao_sequence, 1.0/h)))
+    plot_joint_sequence([2], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, h)
+    # plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, h)
     # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist(), TIME=1.0/h, Interrupt=False)
     # except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist(), TIME=1.0/h, Interrupt=False)
 
-    # Before Smoothing
-    print("Jerkiness before smoothing: {}".format(jerk(nao_sequence, 1.0 / h)))
-    jerkness = jerk(nao_sequence, 1.0/h)
-    plot_joint_sequence([5, 20], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, h)
 
+    nao_sequence_smoothed = nao_sequence
     # Smoothing
+    # smooth_kwargs = {
+    #     'window_length':    35,
+    #     'polyorder':        3,
+    #     'deriv':            0,
+    #     'delta':            1.0,
+    #     'axis':             -1,
+    #     'mode':             'interp',
+    #     'cval':             0.0
+    # }
+    # nao_sequence_smoothed = smooth(nao_sequence_smoothed, smoothing_method='savgol', **smooth_kwargs)
+    # print("Jerkiness after smoothing: {}".format(jerk(nao_sequence_smoothed, 1.0/h)))
+    # plot_joint_sequence([5, 20], nao_interface.joint_names, nao_sequence_smoothed.T, nao_interface.limits, h)
+    # # plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed.T, nao_interface.limits, h)
+    # # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=1.0/h, Interrupt=False)
+    # # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=1.0/h, Interrupt=False)
+
+
+    # Constrained Optimization
+    all_limits = nao_interface.limits
+    nao_sequence_smoothed_optimized = nao_sequence_smoothed.T
+    for i, x in enumerate(nao_sequence_smoothed_optimized):
+        print("Optimizing joint {}.".format(i))
+        x0 = x
+        limits = {
+            'minAngle':     all_limits['minAngle'][i],
+            'maxAngle':     all_limits['maxAngle'][i],
+            'maxChange':    all_limits['maxChange'][i]
+        }
+        cons = constraints(x, limits, h)
+        args = (np.eye(np.size(x)) * 5.0,
+                np.eye(np.size(x)-1) * 0.1,
+                h,
+                x
+               )
+        sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': False})
+        nao_sequence_smoothed_optimized[i] = sol.x
+    nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
+    print("Jerkiness after smoothing and optimization: {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/h)))
+    plot_joint_sequence([2], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, h)
     
