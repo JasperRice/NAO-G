@@ -2,19 +2,19 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-def constraints(x, limits, h):
+def constraints(size, limits, h):
     cons = []
     min_x = limits['minAngle']
     max_x = limits['maxAngle']
     min_v = -limits['maxChange']
     max_v = limits['maxChange']
-    cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[0]})
-    cons.append({'type': 'ineq', 'fun': lambda x: x[0] - min_x})
-    for i in range(1, np.size(x)):
-        cons.append({'type': 'ineq', 'fun': lambda x: max_x - x[i]})
-        cons.append({'type': 'ineq', 'fun': lambda x: x[i] - min_x})
-        cons.append({'type': 'ineq', 'fun': lambda x: max_v - (x[i] - x[i-1]) / h})
-        cons.append({'type': 'ineq', 'fun': lambda x: (x[i] - x[i-1]) / h - min_v})
+    cons.append({'type': 'ineq', 'fun': lambda x: np.array(max_x - x[0])})
+    cons.append({'type': 'ineq', 'fun': lambda x: np.array(x[0] - min_x)})
+    for i in range(1, size):
+        cons.append({'type': 'ineq', 'fun': lambda x: np.array(max_x - x[i])})
+        cons.append({'type': 'ineq', 'fun': lambda x: np.array(x[i] - min_x)})
+        cons.append({'type': 'ineq', 'fun': lambda x: np.array(max_v - (x[i] - x[i-1]) / h)})
+        cons.append({'type': 'ineq', 'fun': lambda x: np.array((x[i] - x[i-1]) / h - min_v)})
 
     return cons
 
