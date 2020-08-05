@@ -1,8 +1,11 @@
+from qpsolvers import solve_qp, solve_safer_qp
 from scipy.optimize import minimize
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
+import cvxopt
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -23,6 +26,18 @@ except: pass
 from network import Net, numpy2tensor
 from setting import *
 
+def cvxopt_solve_qp(P, q, G=None, h=None, A=None, b=None):
+    P = .5 * (P + P.T)  # make sure P is symmetric
+    args = [cvxopt.matrix(P), cvxopt.matrix(q)]
+    if G is not None:
+        args.extend([cvxopt.matrix(G), cvxopt.matrix(h)])
+        if A is not None:
+            args.extend([cvxopt.matrix(A), cvxopt.matrix(b)])
+    sol = cvxopt.solvers.qp(*args)
+    if 'optimal' not in sol['status']:
+        return None
+    return np.array(sol['x']).reshape((P.shape[1],))
+
 
 def plot_joint_sequence(joints, jointNames, sequence, limits, h, title=None, start=None, end=None, filename=None):
     scale = 1.0 / 3.0
@@ -30,20 +45,21 @@ def plot_joint_sequence(joints, jointNames, sequence, limits, h, title=None, sta
         n = len(sequence[joint])
         angles = sequence[joint]
         vel = [(angles[i+1] - angles[i]) / h for i in range(n-1)]
-
         fig, axs = plt.subplots(2, sharex=True)
+
+        ##### Joint Angle
         axs[0].plot(angles, '-', c='blue')
         axs[0].hlines(y=[limits['minAngle'][joint], limits['maxAngle'][joint]],
                       xmin=0, xmax=n-1, linestyles='dashed')
         width = limits['maxAngle'][joint] - limits['minAngle'][joint]
 
-        if title: axs[0].set_title(title + " - Time Interval: %.4f" % h, size=11)
-        else: axs[0].set_title("Time Interval: %.4f" % h, size=11)
+        if title: axs[0].set_title(title + " - Time Interval: %.4f s" % h, size=11)
+        else: axs[0].set_title("Time Interval: %.4f s" % h, size=11)
         axs[0].set_ylabel('Joint angle / rad')
         axs[0].set_ylim([limits['minAngle'][joint]-scale*width, limits['maxAngle'][joint]+scale*width])
         axs[0].legend([jointNames[joint]], fontsize=8)
 
-        #####
+        ##### Joint Velocity
         axs[1].plot(vel, '-', c='blue')
         plt.hlines(y=[limits['maxChange'][joint], -limits['maxChange'][joint]],
                     xmin=0, xmax=n-2, linestyles='dashed')
@@ -112,9 +128,9 @@ if __name__ == "__main__":
 
 
     # Plot motion sequence on joints
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); h = 1.0 / 60.0 * 5
-    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); h = 1.0 / 60.0
-    start = 0; end = 500
+    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); h = 1.0 / 60.0 * 5
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); h = 1.0 / 60.0
+    start = 0; end = 4
     human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
     except NameError: pass
@@ -139,7 +155,7 @@ if __name__ == "__main__":
 
     nao_sequence_smoothed = nao_sequence
     # Smoothing
-    smoothing = True
+    smoothing = False
     if smoothing:
         smooth_kwargs = {
             'window_length':    5,
@@ -163,16 +179,39 @@ if __name__ == "__main__":
     if constrained_optimization:
         all_limits = nao_interface.limits
         nao_sequence_smoothed_optimized = nao_sequence_smoothed.T
+        n = nao_sequence_smoothed_optimized.shape[1]
+
+        Q1, Q2 = np.eye(n, 2*n-1, k=0) * math.sqrt(5), np.eye(n-1, 2*n-1, k=n) * math.sqrt(0.01)
+        M = np.vstack([Q1, Q2])
+        P = np.dot(M.T, M)
+        G1, G2 = np.zeros((2*n, 2*n-1)), np.zeros((2*n-2, 2*n-1))
+        for i in range(n): G1[2*i, i], G1[2*i+1, i] = 1, -1
+        for i in range(n-1): G2[2*i, n+i], G2[2*i+1, n+i] = 1, -1
+        G = np.vstack([G1, G2])
+        A = np.zeros_like(Q2)
+        for i in range(n-1): A[i, i], A[i, i+1], A[i, i+n] = -1, 1, -h
+        B = np.zeros(n-1)
         for i, x in enumerate(nao_sequence_smoothed_optimized):
-            # print("Optimizing joint {}.".format(i))
+            limits = {'minAngle':     all_limits['minAngle'][i],
+                      'maxAngle':     all_limits['maxAngle'][i],
+                      'maxChange':    all_limits['maxChange'][i]}
+            v = (x[1:] - x[:-1]) / h
+            s = np.hstack([x, v])
+            b = np.dot(M, s)
+            Q = np.negative(np.dot(M.T, b))
+            H1, H2 = np.zeros(2*n), np.zeros(2*n-2)
+            for i in range(n): H1[2*i], H1[2*i+1] = limits['maxAngle'], limits['minAngle']
+            for i in range(n-1): H2[2*i], H2[2*i+1] = limits['maxChange'], limits['maxChange']
+            H = np.hstack([H1, H2])
+            print(solve_qp(P, Q, G, H, A, B, solver='cvxpy'))
+            
+        print(nao_sequence_smoothed_optimized.shape); print(nao_sequence_smoothed_optimized[0].shape); exit()
+        for i, x in enumerate(nao_sequence_smoothed_optimized):
+            print("Optimizing joint {}:\t".format(i) + nao_interface.joint_names[i])
             x0 = x
-            limits = {
-                'minAngle':     all_limits['minAngle'][i],
-                'maxAngle':     all_limits['maxAngle'][i],
-                'maxChange':    all_limits['maxChange'][i]
-            }
-            cons = constraints(x, limits, h)
-            print(len(cons))
+            
+            cons = constraints(np.size(x), limits, h)
+            print(cons[-1]); exit()
             args = (np.eye(np.size(x)) * 5.0, # 5.0
                     np.eye(np.size(x)-1) * 0.1, # 0.1
                     h,
