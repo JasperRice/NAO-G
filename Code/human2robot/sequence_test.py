@@ -134,21 +134,22 @@ if __name__ == "__main__":
     except NameError: pass
 
     # Before Post-processing
-    print("Jerkiness before smoothing: {}".format(jerk(nao_sequence, 1.0/interval)))
+    print("Jerkiness before post-processing: {}".format(jerk(nao_sequence, 1.0/interval)))
     plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, interval, title="Before Post-processing", filename="Before_Post-processing")
     # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist(), TIME=interval, Interrupt=False)
     # except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist(), TIME=interval, Interrupt=False)
 
     # Test Control
     smoothing = False
-    constrained_optimization = True
+    constrained_optimization = False
+    constrained_optimization_piecewise = True
     smoothing_after_optimization = False
 
     nao_sequence_smoothed = nao_sequence
     # Smoothing
     if smoothing:
         smooth_kwargs = {
-            'window_length':    5,
+            'window_length':    25, # 25 for 60FPS
             'polyorder':        3,
             'deriv':            0,
             'delta':            1.0,
@@ -159,15 +160,15 @@ if __name__ == "__main__":
         nao_sequence_smoothed = smooth(nao_sequence_smoothed, smoothing_method='savgol', **smooth_kwargs)
         print("Jerkiness after smoothing: {}".format(jerk(nao_sequence_smoothed, 1.0/interval)))
         plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed.T, nao_interface.limits, interval, title="After Smoothing", filename="After_Smoothing")
-        # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
-        # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
+        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
 
 
     nao_sequence_smoothed_optimized = nao_sequence_smoothed
     # Constrained Optimization
     if constrained_optimization:
         all_limits = nao_interface.limits
-        nao_sequence_smoothed_optimized = nao_sequence_smoothed.T
+        nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
 
         use_qp = True
         if use_qp:
@@ -206,12 +207,25 @@ if __name__ == "__main__":
                 sol = minimize(objective, x0, args=args, method='SLSQP', constraints=cons, options={'disp': False})
                 nao_sequence_smoothed_optimized[i] = sol.x
         nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
-        print("Jerkiness after smoothing and optimization: {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/interval)))
+        print("Jerkiness after " + ("smoothing and optimization" if smoothing else "optimization") + ": {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/interval)))
         plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, interval, 
                             title="After Optimization" if not smoothing else "After Smoothing & Optimization",
                             filename="After_Optimization" if not smoothing else "After_Smoothing_Optimization")
         # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
         # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
+
+    nao_sequence_smoothed_optimized_piecewise = nao_sequence_smoothed_optimized
+    if constrained_optimization_piecewise:
+        all_limits = nao_interface.limits
+        nao_sequence_smoothed_optimized_piecewise = nao_sequence_smoothed_optimized_piecewise.T
+        n = nao_sequence_smoothed_optimized_piecewise.shape[1]
+        block_frames = int(0.25 / interval)
+        block_nums = int(math.ceil(n / block_frames)); print(block_nums)
+        M1, M2, M3 = np.eye(n, 2*n-1+block_nums, k=0) * math.sqrt(5), np.eye(n-1, 2*n-1+block_nums, k=n) * math.sqrt(0.01), np.eye(block_nums, 2*n-1+block_nums, k=2*n-1) * math.sqrt(5)
+        M = np.vstack([M1, M2, M3])
+        P = np.dot(M.T, M)
+        A = np.zeros_like(M2)
+
 
     if smoothing_after_optimization:
         pass
