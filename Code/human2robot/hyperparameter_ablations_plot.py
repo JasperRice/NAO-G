@@ -1,11 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-ablation = 'denormalized_activation_functions'
+from data_processing import decompose, normalize, split, smooth
+from io_routines import readCSV
+nao = readCSV('dataset/NAO_overlap.csv')
+nao, nao_scaler = normalize(nao)
+var = nao_scaler.var_
+
+ablation = 'denormalized_dropout'
 file_train = open('ablations_'+ablation+'_results_train.csv', 'r')
 file_val = open('ablations_'+ablation+'_results_val.csv', 'r')
 file_test = open('ablations_'+ablation+'_results_test.csv', 'r')
-x = [0, 0.0765078199812]
+x = ['relu', 'sigmoid']
 
 train = [[] for _ in range(len(x))];    y_train = [];   e_train = [];
 val = [[] for _ in range(len(x))];      y_val = [];     e_val = []
@@ -37,13 +43,12 @@ for t_train, t_val, t_test in zip(train, val, test):
 fig, ax = plt.subplots(1,1)
 start = 0
 end = len(x)
-ax.errorbar(x[start:end], y_train[start:end], e_train[start:end], linestyle='--', marker='.', fmt='-o', label='Training Error')
-ax.errorbar(x[start:end], y_val[start:end], e_val[start:end], linestyle='--', marker='.', fmt='-o', label='Validation Error')
-ax.errorbar(x[start:end], y_test[start:end], e_test[start:end], linestyle='--', marker='.', fmt='-o', label='Test Error')
+ax.errorbar(x[start:end], y_train[start:end], e_train[start:end], linestyle='None', marker='.', fmt='-o', label='Training Error')
+ax.errorbar(x[start:end], y_val[start:end], e_val[start:end], linestyle='None', marker='.', fmt='-o', label='Validation Error')
+ax.errorbar(x[start:end], y_test[start:end], e_test[start:end], linestyle='None', marker='.', fmt='-o', label='Test Error')
 # plt.xscale('log')
-# labels = ['With PCA', 'Without PCA']
-# plt.xticks(x[start:end], labels[start:end])
-plt.xlabel("Dropout Rate")
-plt.ylabel("Error with Standard Deviation / rad")
-plt.legend(loc='center right', bbox_to_anchor=(1, 0.3))
+plt.xlabel("Activation Function")
+plt.ylabel("Error with Standard Deviation")
+# plt.legend(loc='center right', bbox_to_anchor=(1, 0.25))
+plt.legend()
 plt.show()

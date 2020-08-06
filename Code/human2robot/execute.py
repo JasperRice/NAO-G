@@ -34,7 +34,7 @@ def cutJointAngles(IP, PORT, JOINT):
     return JOINT.tolist()
 
 
-def execGesture(IP, PORT, JOINT, TIME=None):
+def execGesture(IP, PORT, JOINT, TIME=None, Interrupt=True):
     """Execute a static gesture on virtual or physical NAO robot
     
     :param IP: Adress IP of the NAO robot
@@ -48,10 +48,8 @@ def execGesture(IP, PORT, JOINT, TIME=None):
     """
     motion = ALProxy("ALMotion", IP, PORT)
     JOINT = cutJointAngles(IP, PORT, JOINT)
-    if TIME is None:
-        TIME = [[1.0/60*20] * len(JOINT[0]) for _ in range(len(JOINT))]
-    else:
-        TIME = [[TIME] * len(JOINT[0]) for _ in range(len(JOINT))]
+    if TIME is None: TIME = [[1.0/60*20] * len(JOINT[0]) for _ in range(len(JOINT))]
+    else: TIME = [[TIME] * len(JOINT[0]) for _ in range(len(JOINT))]
 
     motion.angleInterpolation("Joints", JOINT[0], 0.5, True)
     raw_input("Press ENTER to start ...")
@@ -60,7 +58,7 @@ def execGesture(IP, PORT, JOINT, TIME=None):
         i += 1
         print("=====> Motion index: %d" % i)
         motion.angleInterpolation("Joints", J, T, True)
-        # raw_input("\tPress ENTER to continue ...")
+        if Interrupt: raw_input("\tPress ENTER to continue ...")
 
 
 if __name__ == "__main__":
