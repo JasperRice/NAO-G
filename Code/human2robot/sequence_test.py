@@ -117,9 +117,13 @@ if __name__ == "__main__":
 
     # Plot motion sequence on joints
     # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); interval = 1.0 / 60.0 * 5
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
-    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
-    start = 0; end = 500
+    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
+    
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_017_1From3.bvh'); interval = 1.0 / 60.0 * 3
+    start = 3680; end = 3815
+    # start = 5000; end = 5300
+    # start = 8400; end = 8600
+
     human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
     except NameError: pass
@@ -137,10 +141,11 @@ if __name__ == "__main__":
     # Before Post-processing
     print("Jerkiness before post-processing: {}".format(jerk(nao_sequence, 1.0/interval)))
     plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence.T, nao_interface.limits, interval, title="Before Post-processing", filename="Before_Post-processing")
-    # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist(), TIME=interval, Interrupt=False)
-    # except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist(), TIME=interval, Interrupt=False)
+    # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence.tolist(), interval=interval, Interrupt=False)
+    # except: execGesture(NAO_IP, NAO_PORT, nao_sequence.tolist(), interval=interval, Interrupt=False)
 
     # Test Control
+    plotting = False
     smoothing = False
     constrained_optimization = True
     smoothing_after_optimization = True
@@ -159,9 +164,10 @@ if __name__ == "__main__":
         }
         nao_sequence_smoothed = smooth(nao_sequence_smoothed, smoothing_method='savgol', **smooth_kwargs)
         print("Jerkiness after smoothing: {}".format(jerk(nao_sequence_smoothed, 1.0/interval)))
-        plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed.T, nao_interface.limits, interval, title="After Smoothing", filename="After_Smoothing")
-        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
-        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
+        if plotting:
+            plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed.T, nao_interface.limits, interval, title="After Smoothing", filename="After_Smoothing")
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
+        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
 
 
     nao_sequence_smoothed_optimized = nao_sequence_smoothed
@@ -208,17 +214,18 @@ if __name__ == "__main__":
                 nao_sequence_smoothed_optimized[i] = sol.x
         nao_sequence_smoothed_optimized = nao_sequence_smoothed_optimized.T
         print("Jerkiness after " + ("smoothing and optimization" if smoothing else "optimization") + ": {}".format(jerk(nao_sequence_smoothed_optimized, 1.0/interval)))
-        plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, interval, 
-                            title="After Optimization" if not smoothing else "After Smoothing & Optimization",
-                            filename="After_Optimization" if not smoothing else "After_Smoothing_Optimization")
-        # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
-        # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
+        if plotting:
+            plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, interval, 
+                                title="After Optimization" if not smoothing else "After Smoothing & Optimization",
+                                filename="After_Optimization" if not smoothing else "After_Smoothing_Optimization")
+        # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
+        # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
 
     
     nao_sequence_optimized_smoothed = nao_sequence_smoothed_optimized
     if smoothing_after_optimization:
         smooth_kwargs = {
-            'window_length':    25, # 25 for 60FPS
+            'window_length':    9, # 25 for 60FPS; 9 For 20 FPS; 5 For 12 FPS
             'polyorder':        3,
             'deriv':            0,
             'delta':            1.0,
@@ -228,8 +235,9 @@ if __name__ == "__main__":
         }
         nao_sequence_optimized_smoothed = smooth(nao_sequence_optimized_smoothed, smoothing_method='savgol', **smooth_kwargs)
         print("Jerkiness after " + ("optimization and smoothing" if constrained_optimization else "smoothing") + ": {}".format(jerk(nao_sequence_optimized_smoothed, 1.0/interval)))
-        plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_optimized_smoothed.T, nao_interface.limits, interval,
-                            title="After Smoothing" if not constrained_optimization else "After Optimization & Smoothing",
-                            filename="After_Smoothing" if not constrained_optimization else "After_Optimization_Smoothing")
-        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_optimized_smoothed.tolist(), TIME=interval, Interrupt=False)
-        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_optimized_smoothed.tolist(), TIME=interval, Interrupt=False)
+        if plotting:
+            plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_optimized_smoothed.T, nao_interface.limits, interval,
+                                title="After Smoothing" if not constrained_optimization else "After Optimization & Smoothing",
+                                filename="After_Smoothing" if not constrained_optimization else "After_Optimization_Smoothing")
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_optimized_smoothed.tolist(), interval=interval, Interrupt=False)
+        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_optimized_smoothed.tolist(), interval=interval, Interrupt=False)
