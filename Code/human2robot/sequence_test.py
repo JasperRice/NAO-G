@@ -118,7 +118,8 @@ if __name__ == "__main__":
     # Plot motion sequence on joints
     # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); interval = 1.0 / 60.0 * 5
     human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
-    start = 300; end = 480
+    human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
+    start = 0; end = 500
     human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
     except NameError: pass
@@ -141,9 +142,8 @@ if __name__ == "__main__":
 
     # Test Control
     smoothing = False
-    constrained_optimization = False
-    constrained_optimization_piecewise = True
-    smoothing_after_optimization = False
+    constrained_optimization = True
+    smoothing_after_optimization = True
 
     nao_sequence_smoothed = nao_sequence
     # Smoothing
@@ -214,18 +214,22 @@ if __name__ == "__main__":
         # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
         # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), TIME=interval, Interrupt=False)
 
-    nao_sequence_smoothed_optimized_piecewise = nao_sequence_smoothed_optimized
-    if constrained_optimization_piecewise:
-        all_limits = nao_interface.limits
-        nao_sequence_smoothed_optimized_piecewise = nao_sequence_smoothed_optimized_piecewise.T
-        n = nao_sequence_smoothed_optimized_piecewise.shape[1]
-        block_frames = int(0.25 / interval)
-        block_nums = int(math.ceil(n / block_frames)); print(block_nums)
-        M1, M2, M3 = np.eye(n, 2*n-1+block_nums, k=0) * math.sqrt(5), np.eye(n-1, 2*n-1+block_nums, k=n) * math.sqrt(0.01), np.eye(block_nums, 2*n-1+block_nums, k=2*n-1) * math.sqrt(5)
-        M = np.vstack([M1, M2, M3])
-        P = np.dot(M.T, M)
-        A = np.zeros_like(M2)
-
-
+    
+    nao_sequence_optimized_smoothed = nao_sequence_smoothed_optimized
     if smoothing_after_optimization:
-        pass
+        smooth_kwargs = {
+            'window_length':    25, # 25 for 60FPS
+            'polyorder':        3,
+            'deriv':            0,
+            'delta':            1.0,
+            'axis':             -1,
+            'mode':             'interp',
+            'cval':             0.0
+        }
+        nao_sequence_optimized_smoothed = smooth(nao_sequence_optimized_smoothed, smoothing_method='savgol', **smooth_kwargs)
+        print("Jerkiness after " + ("optimization and smoothing" if constrained_optimization else "smoothing") + ": {}".format(jerk(nao_sequence_optimized_smoothed, 1.0/interval)))
+        plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_optimized_smoothed.T, nao_interface.limits, interval,
+                            title="After Smoothing" if not constrained_optimization else "After Optimization & Smoothing",
+                            filename="After_Smoothing" if not constrained_optimization else "After_Optimization_Smoothing")
+        try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_optimized_smoothed.tolist(), TIME=interval, Interrupt=False)
+        except: execGesture(NAO_IP, NAO_PORT, nao_sequence_optimized_smoothed.tolist(), TIME=interval, Interrupt=False)
