@@ -79,9 +79,13 @@ if __name__ == "__main__":
     # Create interface for Human and NAO
     # Human interface is used for recording the finger indices
     human_interface = HumanInterface.createFromBVH('dataset/BVH/human_skeletion.bvh')
-    try: nao_interface = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
+    try:
+        nao_interface = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
+        print("Connected to Physical NAO")
     except:
-        try: nao_interface = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
+        try: 
+            nao_interface = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
+            print("Connected to Virtual NAO")
         except: pass
     fingerIndex = []
     fingerJointList = [
@@ -116,13 +120,19 @@ if __name__ == "__main__":
 
 
     # Plot motion sequence on joints
-    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From5.bvh'); interval = 1.0 / 60.0 * 5
+    # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2_1From3.bvh'); interval = 1.0 / 60.0 * 3
+    # start = 0; end = 300
+    # start = 500; end = 600
+
     # human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_030_2.bvh'); interval = 1.0 / 60.0
+    # start = 300; end = 500
     
     human_interface.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_017_1From3.bvh'); interval = 1.0 / 60.0 * 3
-    start = 3680; end = 3815
-    # start = 5000; end = 5300
+    # start = 3600; end = 3900
     # start = 8400; end = 8600
+    # start = 8400; end = 8550;
+    # start = 8600; end = 8900
+    start = 9500; end = 9800
 
     human_sequence = human_interface.jointAngles[start:end]; human_sequence = np.delete(np.array(human_sequence), fingerIndex, axis=1)
     try: human_sequence = human_scaler.transform(human_sequence)
@@ -218,8 +228,9 @@ if __name__ == "__main__":
             plot_joint_sequence([2,3,4,5,6,-5,-4,-3,-2,-1], nao_interface.joint_names, nao_sequence_smoothed_optimized.T, nao_interface.limits, interval, 
                                 title="After Optimization" if not smoothing else "After Smoothing & Optimization",
                                 filename="After_Optimization" if not smoothing else "After_Smoothing_Optimization")
-        # try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
-        # except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
+        if not smoothing_after_optimization:
+            try: execGesture(P_NAO_IP, P_NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
+            except: execGesture(NAO_IP, NAO_PORT, nao_sequence_smoothed.tolist(), interval=interval, Interrupt=False)
 
     
     nao_sequence_optimized_smoothed = nao_sequence_smoothed_optimized
