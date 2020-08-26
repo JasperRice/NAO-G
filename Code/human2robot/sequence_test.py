@@ -71,6 +71,38 @@ def jerk(motions, f):
             J += ((S[i+3] - 3.0*S[i+2] + 3.0*S[i+1] - S[i]) * (f**3))**2
     return J / (2*f*(N-3))
 
+def compute_jerks(data, dim=3):
+    """Compute jerk between adjacent frames
+
+    Args:
+        data:         array containing joint positions of gesture
+        dim:          gesture dimensionality
+
+    Returns:
+        np.ndarray:   jerks of each joint averaged over all frames
+    """
+
+    # Third derivative of position is jerk
+    jerks = np.diff(data, n=3, axis=0)
+
+    num_jerks = jerks.shape[0]
+    num_joints = jerks.shape[1] // dim
+
+    jerk_norms = np.zeros((num_jerks, num_joints))
+
+    for i in range(num_jerks):
+        for j in range(num_joints):
+            x1 = j * dim + 0
+            x2 = j * dim + dim
+            jerk_norms[i, j] = np.linalg.norm(jerks[i, x1:x2])
+
+    average = np.mean(jerk_norms, axis=0)
+
+    # Take into account that frame rate was 20 fps
+    scaled_av = average * 20 * 20 * 20
+
+    return scaled_av
+
 
 if __name__ == "__main__":
     # Reproducibility by setting a seed
