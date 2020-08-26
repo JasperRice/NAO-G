@@ -218,7 +218,7 @@ if __name__ == "__main__":
     try: nao = NAOInterface(IP=P_NAO_IP, PORT=P_NAO_PORT)
     except: nao = NAOInterface(IP=NAO_IP, PORT=NAO_PORT)
     print(nao)
-    nao.getAngleLimits()
+    nao.getAngleLimits(); exit()
     # nao.animateAngleLimit('LShoulderRoll')
     # HeadYaw HeadPitch 
     # LShoulderPitch LShoulderRoll LElbowYaw LElbowRoll LWristYaw 
@@ -226,8 +226,9 @@ if __name__ == "__main__":
     # RHipYawPitch RHipRoll RHipPitch RKneePitch RAnklePitch RAnkleRoll 
     # RShoulderPitch RShoulderRoll RElbowYaw RElbowRoll RWristYaw
 
-    # nao.readJointAnglesFromCSV('dataset/NAO_right_hand.csv')
-    # nao.executePosesOneByOne()
+    nao.readJointAnglesFromCSV('dataset/NAO_overlap.csv')
+    nao.executePosesOneByOne()
+    exit()
 
     try:
         file = open('dataset/NAO_test.csv')

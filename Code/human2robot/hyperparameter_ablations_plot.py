@@ -7,11 +7,11 @@ nao = readCSV('dataset/NAO_overlap.csv')
 nao, nao_scaler = normalize(nao)
 var = nao_scaler.var_
 
-ablation = 'denormalized_dropout'
+ablation = 'denormalized_pca'
 file_train = open('ablations_'+ablation+'_results_train.csv', 'r')
 file_val = open('ablations_'+ablation+'_results_val.csv', 'r')
 file_test = open('ablations_'+ablation+'_results_test.csv', 'r')
-x = ['relu', 'sigmoid']
+x = [0, 0.005450020325607934]
 
 train = [[] for _ in range(len(x))];    y_train = [];   e_train = [];
 val = [[] for _ in range(len(x))];      y_val = [];     e_val = []
@@ -46,6 +46,10 @@ end = len(x)
 ax.errorbar(x[start:end], y_train[start:end], e_train[start:end], linestyle='None', marker='.', fmt='-o', label='Training Error')
 ax.errorbar(x[start:end], y_val[start:end], e_val[start:end], linestyle='None', marker='.', fmt='-o', label='Validation Error')
 ax.errorbar(x[start:end], y_test[start:end], e_test[start:end], linestyle='None', marker='.', fmt='-o', label='Test Error')
+print(y_train, e_train)
+print(y_val, e_val)
+print(y_test, e_test)
+
 # plt.xscale('log')
 plt.xlabel("Activation Function")
 plt.ylabel("Error with Standard Deviation")

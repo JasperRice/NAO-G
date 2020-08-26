@@ -34,7 +34,7 @@ def cutJointAngles(IP, PORT, JOINT):
     return JOINT.tolist()
 
 
-def execGesture(IP, PORT, JOINT, TIME=None, Interrupt=True):
+def execGesture(IP, PORT, JOINT, interval=None, Interrupt=True):
     """Execute a static gesture on virtual or physical NAO robot
     
     :param IP: Adress IP of the NAO robot
@@ -43,13 +43,11 @@ def execGesture(IP, PORT, JOINT, TIME=None, Interrupt=True):
     :type PORT: int
     :param JOINT: A list of lists of joint angles of NAO
     :type JOINT: list[list]
-    :param TIME: A list of lists of time
-    :type TIME: list[list]
     """
     motion = ALProxy("ALMotion", IP, PORT)
     JOINT = cutJointAngles(IP, PORT, JOINT)
-    if TIME is None: TIME = [[1.0/60*20] * len(JOINT[0]) for _ in range(len(JOINT))]
-    else: TIME = [[TIME] * len(JOINT[0]) for _ in range(len(JOINT))]
+    if interval is None: TIME = [[1.0/60*20] * len(JOINT[0]) for _ in range(len(JOINT))]
+    else: TIME = [[interval] * len(JOINT[0]) for _ in range(len(JOINT))]
 
     motion.angleInterpolation("Joints", JOINT[0], 0.5, True)
     raw_input("Press ENTER to start ...")

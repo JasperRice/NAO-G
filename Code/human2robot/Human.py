@@ -256,12 +256,12 @@ class HumanInterface:
 if __name__ == "__main__":
     human = HumanInterface.createFromBVH('dataset/BVH/NaturalTalking_0{}.bvh'.format('01'))
     # human.writeJointAnglesToCSV('dataset/BVH/NaturalTalking_0{}.csv'.format('01'))
-    print(len(human))
-    print(human.printAngleLabels())
-    exit()
-    talk_number = 15
+    # print(len(human))
+    # print(human.printAngleLabels())
+    # exit()
+    talk_number = '30_2'
     human.readJointAnglesFromBVH('dataset/BVH/NaturalTalking_0{}.bvh'.format(talk_number))
     human.fixShoulders()
-    N = 60
+    N = 3
     human.downSample(N=N)
     human.writeJointAnglesToBVH('dataset/BVH/NaturalTalking_0{}_1From{}.bvh'.format(talk_number, N))

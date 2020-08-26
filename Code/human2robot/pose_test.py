@@ -66,7 +66,7 @@ if __name__ == "__main__":
     net.eval()
     
     # Load human poses
-    human_pose_test = readCSV('dataset/Human_Type_Hands_Mean.csv'); human_pose_test = np.delete(human_pose_test, fingerIndex, axis=1)
+    human_pose_test = readCSV('dataset/Human_Type_Hands_Wide.csv'); human_pose_test = np.delete(human_pose_test, fingerIndex, axis=1)
     human_pose_test = human_scaler.transform(human_pose_test)
     human_pose_test_torch = torch.from_numpy(human_pose_test).float()
 

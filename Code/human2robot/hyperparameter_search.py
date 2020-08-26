@@ -1,3 +1,7 @@
+"""
+('Best hyper-parameter option: ', [0.0002296913506475621, 'relu', 0.005450020325607934, [128, 32]])
+('Min validation loss: ', 0.5709372162818909)
+"""
 from itertools import permutations
 from scipy.optimize import minimize
 from sklearn.decomposition import PCA
@@ -92,44 +96,45 @@ nao_train = torch.from_numpy(nao_train).float()
 nao_val = torch.from_numpy(nao_val).float()
 
 
-keywords = ['Learning Rate', 'Activation Function', 'Weight Decay', 'Hidden Layers', 'Validation Error']
+keywords = ['Learning Rate', 'Activation Function', 'Weight Decay', 'Hidden Layers', 'Dropout Rate','Validation Error']
 lr_range = (-4, 0)
 reg_range = (-5, -1)
 hl_options = generateHiddenLayerOptions()
-af_options = ['relu', 'leaky_relu']
+af_options = ['relu', 'leaky_relu', 'tanh', 'sigmoid']
 
 try:
-    file = open("random_search_result.csv", 'r')
+    file = open("random_search_result_with_dr_sigmoid_included.csv", 'r')
     lines = file.readlines()
     file.close()
     if len(lines) == 0:
-        file = open("random_search_result.csv", 'w')
+        file = open("random_search_result_random_search_result_with_dr_sigmoid_includedwith_dr.csv", 'w')
         file.writelines(', '.join(keywords) + '\n')
     else:
-        file = open("random_search_result.csv", 'a')
+        file = open("random_search_result_with_dr_sigmoid_included.csv", 'a')
 except:
-    file = open("random_search_result.csv", 'w')
+    file = open("random_search_result_with_dr_sigmoid_included.csv", 'w')
     file.writelines(', '.join(keywords) + '\n')
 
 best_search = None
 best_val_error = np.inf
-num_search = 200
+num_search = 1000
 for i in range(num_search):
     lr = 10 ** random.uniform(*lr_range)
     reg = 10 ** random.uniform(*reg_range)
+    dr = random.uniform(0, 1)
     hidden_layers = random.choice(hl_options)
     af = random.choice(af_options)
 
     net = Net(n_input=np.size(human, 1), n_hidden=hidden_layers, n_output=np.size(nao, 1), 
-              AF=af, dropout_rate=0, learning_rate=lr, reg=reg)
+              AF=af, dropout_rate=dr, learning_rate=lr, reg=reg)
     net.__train__(human_train, human_val, nao_train, nao_val, max_epoch=3000, stop=True)
 
     if net.min_val_loss < best_val_error:
-        best_search = [lr, af, reg, hidden_layers]
+        best_search = [lr, af, reg, hidden_layers, dr]
         best_val_error = float(net.min_val_loss)
 
     hidden_layers_str = ' '.join(map(str, hidden_layers))
-    file.writelines(', '.join(map(str, [lr, af, reg, hidden_layers_str, net.min_val_loss])) + '\n')
+    file.writelines(', '.join(map(str, [lr, af, reg, hidden_layers_str, dr, net.min_val_loss])) + '\n')
 
 print('Best hyper-parameter option: ', best_search)
 print('Min validation loss: ', best_val_error)
