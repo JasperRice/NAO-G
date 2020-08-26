@@ -1,5 +1,0 @@
-A few questions which you might consider later (with the caveat that I am not all familiar with the practices in this field or problem):
-1. How many samples did you use to fit the NN? Is it sufficient?
-2. Did you use dimension reductions (it sounds like you used PCA)? If so, how many dimensions did you reduce it to and how did you decide on this number?
-3. Why not do smoothing and constrained optimizations in "one go" (maybe you did)? I gather that the the two might be able to be combined easily?
-4. How often is the constraints binding in the constrained optimizations?
